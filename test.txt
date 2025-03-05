@@ -1,0 +1,106 @@
+Sure! Here’s a complete set of commands along with a simple YAML file for deploying a basic app (NGINX) on OpenShift, which you can use as a reference to deploy other services.
+
+1. Log in to OpenShift (if you are not logged in already):
+bash
+Copy
+Edit
+oc login <openshift-cluster-url>
+2. Create or Switch to the Namespace:
+bash
+Copy
+Edit
+oc create namespace cti-svcs-eap-cds-on-ecs-165345-test
+oc project cti-svcs-eap-cds-on-ecs-165345-test
+3. Create Deployment and Service YAML File
+Create a new file deployment-and-service.yaml and copy the following content:
+
+yaml
+Copy
+Edit
+# deployment-and-service.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-deployment
+  namespace: cti-svcs-eap-cds-on-ecs-165345-test
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sample-app
+  template:
+    metadata:
+      labels:
+        app: sample-app
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-service
+  namespace: cti-svcs-eap-cds-on-ecs-165345-test
+spec:
+  selector:
+    app: sample-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+4. Apply the YAML File to Deploy the Resources:
+Run the following commands to deploy the application and service:
+
+bash
+Copy
+Edit
+oc apply -f deployment-and-service.yaml -n cti-svcs-eap-cds-on-ecs-165345-test
+5. Verify the Deployment:
+Check if the pods are running correctly:
+
+bash
+Copy
+Edit
+oc get pods -n cti-svcs-eap-cds-on-ecs-165345-test
+Check if the service is created:
+
+bash
+Copy
+Edit
+oc get svc -n cti-svcs-eap-cds-on-ecs-165345-test
+6. Expose the Service (Optional):
+If you need to access the service externally, you can expose it as a route:
+
+bash
+Copy
+Edit
+oc expose svc/sample-service -n cti-svcs-eap-cds-on-ecs-165345-test
+This will give you a URL to access the NGINX service in your browser.
+
+Summary of Commands:
+bash
+Copy
+Edit
+# 1. Log in to OpenShift
+oc login <openshift-cluster-url>
+
+# 2. Create or Switch to Namespace
+oc create namespace cti-svcs-eap-cds-on-ecs-165345-test
+oc project cti-svcs-eap-cds-on-ecs-165345-test
+
+# 3. Apply YAML File for Deployment and Service
+oc apply -f deployment-and-service.yaml -n cti-svcs-eap-cds-on-ecs-165345-test
+
+# 4. Verify Pods and Services
+oc get pods -n cti-svcs-eap-cds-on-ecs-165345-test
+oc get svc -n cti-svcs-eap-cds-on-ecs-165345-test
+
+# 5. Expose the Service (Optional)
+oc expose svc/sample-service -n cti-svcs-eap-cds-on-ecs-165345-test
+You can now copy and use this YAML file for deploying services and verify the setup in your OpenShift cluster.
