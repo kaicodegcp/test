@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Set your Cloudera credentials
+USERNAME="your_username"
+PASSWORD="your_password"
+BASE_URL="https://archive.cloudera.com/p/cdp-pvc-ds/1.5.4-h10/images/"
+DOWNLOAD_DIR="./cloudera_images"
+
+# Create download directory if not exists
+mkdir -p "$DOWNLOAD_DIR"
+
+# Fetch the list of files and their sizes
+FILE_LIST=$(curl -u "$USERNAME:$PASSWORD" -s "$BASE_URL" | grep -oP '(?<=href=")[^"]*\.tar\.gz')
+SIZE_LIST=$(curl -u "$USERNAME:$PASSWORD" -s "$BASE_URL" | grep -oP '(?<=\s)[0-9]+\.[0-9]+ (KB|MB|GB)')
+
+# Calculate total number of files
+TOTAL_FILES=$(echo "$FILE_LIST" | wc -l)
+
+# Convert sizes to bytes and sum them
+TOTAL_SIZE_BYTES=0
+while read -r SIZE UNIT; do
+    case "$UNIT" in
+        KB) SIZE_BYTES=$(echo "$SIZE * 1024" | bc) ;;
+        MB) SIZE_BYTES=$(echo "$SIZE * 1024 * 1024" | bc) ;;
+        GB) SIZE_BYTES=$(echo "$SIZE * 1024 * 1024 * 1024" | bc) ;;
+    esac
+    TOTAL_SIZE_BYTES=$(echo "$TOTAL_SIZE_BYTES + $SIZE_BYTES" | bc)
+done <<< "$(paste <(echo "$SIZE_LIST"))"
+
+# Convert bytes to human-readable format
+TOTAL_SIZE_HR=$(numfmt --to=iec --suffix=B --format="%.2f" <<< "$TOTAL_SIZE_BYTES")
+
+echo "Total files: $TOTAL_FILES"
+echo "Total size: $TOTAL_SIZE_HR"
+
+# Download all files
+for FILE in $FILE_LIST; do
+    echo "Downloading: $FILE"
+    curl -u "$USERNAME:$PASSWORD" -O "$BASE_URL$FILE" --output-dir "$DOWNLOAD_DIR"
+done
+
+echo "Download completed. Files saved in $DOWNLOAD_DIR"
