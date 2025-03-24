@@ -1,0 +1,29 @@
+​The Spark3 parcel version SPARK3-3.3.2.3.3.7191000.7-1-1.p0.63223335-el8 included in Cloudera's recent Cumulative Hotfix 12 (CHF12) for CDP Private Cloud Base 7.1.9 introduces several important fixes and improvements. While the specific details of CHF12 are not publicly documented, the preceding hotfix, CHF11 (version 3.3.7191000.6-1), addressed the following issues:​
+Cloudera Documentation
++9
+Cloudera Documentation
++9
+Cloudera Documentation
++9
+
+CDPD-78124: Resolved missing handling of OptimizedCreateHiveTableAsSelectCommand in SAC3.​
+Cloudera Community
++2
+Cloudera Documentation
++2
+Cloudera
++2
+
+CDPD-77892: Fixed an issue where the phoenix5-spark3-shaded jar bundled with Reload4jLoggerFactory disrupted Spark3 logging functionality.​
+Cloudera Documentation
+
+CDPD-76735: Backported SPARK-39489 to enhance EventLoggingListener and ReplayListener performance by replacing Json4S ASTs with Jackson trees.​
+Cloudera Documentation
+
+CDPD-75742: Upgraded commons-lang3 to version 3.13.0.​
+Cloudera Documentation
+
+CDPD-75286: Addressed a StreamConstraintsException in Spark History UI caused by excessive string length.​
+Cloudera Documentation
+
+Given that CHF12 succeeds CHF11, it likely encompasses these fixes along with additional enhancements and resolutions. For comprehensive details on the specific fixes and improvements introduced in CHF12, it is recommended to consult Cloudera's official release notes or contact Cloudera Support directly. 
