@@ -1,0 +1,35 @@
+apiVersion: v1
+clusters:
+- cluster:
+    server: https://api-namgpugtd002d-ecs-dyn-nsroot-net:6443
+    certificate-authority-data: <base64-encoded-ca-cert>
+  name: api-namgpugtd002d-ecs-dyn-nsroot-net:6443
+contexts:
+- context:
+    cluster: api-namgpugtd002d-ecs-dyn-nsroot-net:6443
+    namespace: cti-svcs-eap-cds-on-ecs-165345-test
+    user: eap_dev/api-namgpugtd002d-ecs-dyn-nsroot-net:6443
+  name: cti-svcs-eap-cds-on-ecs-165345-test/api-namgpugtd002d-ecs-dyn-nsroot-net:6443/eap_dev
+current-context: cti-svcs-eap-cds-on-ecs-165345-test/api-namgpugtd002d-ecs-dyn-nsroot-net:6443/eap_dev
+kind: Config
+preferences: {}
+users:
+- name: eap_dev/api-namgpugtd002d-ecs-dyn-nsroot-net:6443
+  user:
+    token: sha256~SMVyyCR_zU86s0fvidWyo-O3s_ozlRrQi_FTT5a7Fw
+Ensure OpenShift Role and Permissions:
+
+The user eap_dev should have the necessary cluster-admin permissions.
+
+Verify:
+
+bash
+Copy
+Edit
+oc get clusterrolebindings | grep eap_dev
+If missing, grant permissions:
+
+bash
+Copy
+Edit
+oc adm policy add-cluster-role-to-user cluster-admin eap_dev
