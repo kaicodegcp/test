@@ -33,3 +33,46 @@ bash
 Copy
 Edit
 oc adm policy add-cluster-role-to-user cluster-admin eap_dev
+
+How to Find the Correct CA Certificate?
+Check Your Existing kubeconfig File
+If you already have a working kubeconfig, check if certificate-authority-data or certificate-authority is present.
+
+bash
+Copy
+Edit
+cat ~/.kube/config | grep certificate-authority
+If you see certificate-authority-data, it should contain a base64-encoded value.
+
+If you see certificate-authority, it points to a file (e.g., /etc/kubernetes/pki/ca.crt).
+
+Extract the CA Certificate (if missing in kubeconfig)
+If your kubeconfig doesn't have certificate-authority-data, but you have access to the cluster, run:
+
+bash
+Copy
+Edit
+kubectl get secret -n kube-system $(kubectl get secret -n kube-system | grep default-token | awk '{print $1}') -o jsonpath="{.data.ca\.crt}" | base64 --decode
+This will output the CA certificate used by the cluster.
+
+Convert CA Certificate to Base64
+If you got a .crt file, encode it in base64:
+
+bash
+Copy
+Edit
+cat /etc/kubernetes/pki/ca.crt | base64 -w 0
+Copy the output and paste it into your kubeconfig:
+
+yaml
+Copy
+Edit
+certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJ... (your base64-encoded CA certificate)
+Verify the Kubeconfig Works
+Once updated, test if your kubeconfig is correct:
+
+bash
+Copy
+Edit
+kubectl get nodes --kubeconfig your-kubeconfig.yaml
+If it works, you're all set!
