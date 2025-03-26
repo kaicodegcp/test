@@ -1,0 +1,116 @@
+Step 1: Verify DNS and Network Connectivity
+Since you have access to the OpenShift cluster, first check if you can resolve the API server's hostname and reach it over the network.
+
+Test Name Resolution (DNS)
+Run this from your terminal:
+
+bash
+Copy
+Edit
+nslookup api-namgpugtd002d-ecs-dyn-nsroot-net
+or
+
+bash
+Copy
+Edit
+dig api-namgpugtd002d-ecs-dyn-nsroot-net
+If it fails, your DNS may not be resolving the OpenShift API hostname.
+
+Try adding an entry in /etc/hosts (temporary fix):
+
+bash
+Copy
+Edit
+echo "192.168.x.x api-namgpugtd002d-ecs-dyn-nsroot-net" | sudo tee -a /etc/hosts
+(Replace 192.168.x.x with the correct IP of the API server.)
+
+Test Network Connectivity
+bash
+Copy
+Edit
+ping api-namgpugtd002d-ecs-dyn-nsroot-net
+or
+
+bash
+Copy
+Edit
+curl -k https://api-namgpugtd002d-ecs-dyn-nsroot-net:6443
+If ping fails but DNS resolves, check firewall rules.
+
+If curl fails with connection timeout, the API server might be down or unreachable.
+
+Step 2: Verify OpenShift API Service
+If the OpenShift API is running but inaccessible, check the status using:
+
+bash
+Copy
+Edit
+oc whoami
+oc status
+If you're logged in and it fails, try listing the API server pods:
+
+bash
+Copy
+Edit
+oc get pods -n openshift-apiserver
+If pods are down, restart them:
+
+bash
+Copy
+Edit
+oc delete pod --all -n openshift-apiserver
+Step 3: Check Firewall & Security Rules
+Ensure that ports 6443 (API) and 22623 (Machine Config) are open:
+
+bash
+Copy
+Edit
+sudo firewall-cmd --list-ports
+sudo firewall-cmd --add-port=6443/tcp --permanent
+sudo firewall-cmd --add-port=22623/tcp --permanent
+sudo firewall-cmd --reload
+If using iptables, check for blocked rules:
+
+bash
+Copy
+Edit
+sudo iptables -L -n
+Step 4: Verify Kubeconfig & Certificates
+If you have a kubeconfig file, check if it's correct:
+
+bash
+Copy
+Edit
+export KUBECONFIG=/path/to/kubeconfig
+kubectl config view
+Test API access:
+
+bash
+Copy
+Edit
+kubectl get nodes
+If you see TLS/certificate issues, renew the kubeconfig:
+
+bash
+Copy
+Edit
+oc login https://api-namgpugtd002d-ecs-dyn-nsroot-net:6443 -u eap_dev --token=<your_token>
+Step 5: Restart OpenShift Services
+If the API server is down, restart the OpenShift control plane:
+
+bash
+Copy
+Edit
+systemctl restart kubelet
+systemctl restart crio
+Still Not Working?
+If it's a network issue, check with your infra/network team.
+
+If it's a certificate issue, reinitialize the kubeconfig.
+
+If the API server is down, check logs:
+
+bash
+Copy
+Edit
+journalctl -u kubelet --no-pager | tail -50
