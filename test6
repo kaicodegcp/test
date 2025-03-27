@@ -1,0 +1,111 @@
+The error in your screenshot indicates a problem with the kubeconfig file, specifically a duplicate name issue in the contexts section. This means your kubeconfig contains multiple entries with the same name (eap_dev), causing conflicts.
+
+Fix the Kubeconfig Duplicate Context Issue
+Check the Kubeconfig File:
+
+bash
+Copy
+Edit
+cat ~/.kube/config
+Look for multiple entries of eap_dev under contexts.
+
+Manually Remove Duplicates:
+
+Open the kubeconfig file in a text editor:
+
+bash
+Copy
+Edit
+vi ~/.kube/config
+Identify and remove the duplicate contexts entries for eap_dev.
+
+Save and exit.
+
+Validate the Kubeconfig: After editing, check if it works:
+
+bash
+Copy
+Edit
+oc config view --minify
+oc get nodes
+If this works, retry your installation.
+
+Test Context Switching:
+
+bash
+Copy
+Edit
+oc config get-contexts
+oc config use-context <valid-context-name>
+Retry the Installation: Once fixed, retry running your install-cdp.sh script.
+
+Let me know if you still face issues! 🚀
+
+
+
+
+
+
+
+You said:
+where it fix im running through Cloudera Console so where to login is CM admin or installtion host?
+
+
+ChatGPT said:
+Since you're running the install-cdp.sh script through the Cloudera Console, you need to fix the kubeconfig file on the installation host where the script is being executed. Follow these steps:
+
+1️⃣ Identify the Installation Host
+Since you're deploying Cloudera Data Services (CDS) on OpenShift, the installation host is the machine where Cloudera Manager (CM) or the bootstrap script (install-cdp.sh) is running. You likely need to log in to the machine where this script is executing.
+
+If you have direct SSH access, log in to the installation host:
+
+bash
+Copy
+Edit
+ssh <your-installation-host>
+If you're unsure, check which machine runs the deployment script from Cloudera Manager.
+
+2️⃣ Check the Kubeconfig File
+Once logged in to the installation host, check the kubeconfig file location. The error message suggests the kubeconfig is stored in /data/l/tmp/. Verify its contents:
+
+bash
+Copy
+Edit
+cat /data/l/tmp/download-and-execute-6bc996cb-34d2-406b-ac23-ca8da92349fd/kubeconfig
+Or check the default location:
+
+bash
+Copy
+Edit
+cat ~/.kube/config
+3️⃣ Remove Duplicate Context Entries
+Open the kubeconfig file:
+
+bash
+Copy
+Edit
+vi /data/l/tmp/download-and-execute-6bc996cb-34d2-406b-ac23-ca8da92349fd/kubeconfig
+Find and remove duplicate contexts named eap_dev.
+
+Each context entry starts with - context:
+
+Ensure there is only one unique entry per cluster.
+
+Save and exit (Esc → :wq).
+
+4️⃣ Validate the Kubeconfig
+After fixing the file, test the OpenShift connection:
+
+bash
+Copy
+Edit
+export KUBECONFIG=/data/l/tmp/download-and-execute-6bc996cb-34d2-406b-ac23-ca8da92349fd/kubeconfig
+oc config get-contexts
+oc config use-context <valid-context-name>
+oc get nodes
+If the issue persists, try setting the correct kubeconfig for Cloudera:
+
+bash
+Copy
+Edit
+export KUBECONFIG=~/.kube/config
