@@ -182,3 +182,81 @@ Replace <NAMESPACE> with the namespace where Vault is deployed.
 
 
 echo "<DOCKER_PASSWORD>" | docker login <DOCKER_REGISTRY_URL> --username <DOCKER_USER> --password-stdin
+
+
+Verify Registry Access
+Run the following command to check if the registry is accessible:
+
+sh
+Copy
+Edit
+curl -k -v http://sd-cwdz-kcu9.nam.nsroot.net:5000/v2/
+If you get a 403 Forbidden, your user may not have permissions.
+
+If you get a 404 Not Found, the registry might not be running or misconfigured.
+
+If you get curl: (7) Failed to connect, the registry might be down.
+
+2. Check If Your Registry Requires HTTPS
+Your command is using http://, but Docker is automatically switching to https://. If your registry is running on HTTP, you need to tell Docker to treat it as an insecure registry.
+
+Solution: Configure Docker Daemon for Insecure Registry
+Open Docker’s daemon config file:
+
+sh
+Copy
+Edit
+sudo vi /etc/docker/daemon.json
+Add the following (or modify if it already exists):
+
+json
+Copy
+Edit
+{
+  "insecure-registries": ["sd-cwdz-kcu9.nam.nsroot.net:5000"]
+}
+Restart Docker:
+
+sh
+Copy
+Edit
+sudo systemctl restart docker
+Try logging in again:
+
+sh
+Copy
+Edit
+echo "admin" | docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000 --username admin --password-stdin
+3. Check Registry Permissions
+Your user might not have access to the registry. If you are using Harbor, Nexus, or another registry type:
+
+Log in to the registry UI (if available) and ensure the admin user has read/write permissions.
+
+If your registry uses authentication tokens, try regenerating them.
+
+4. Verify Credentials
+Try logging in manually:
+
+sh
+Copy
+Edit
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000
+If prompted, enter your username and password. If it fails:
+
+Double-check your password.
+
+Reset your credentials if necessary.
+
+5. Restart the Docker Registry (if you have access)
+If the registry service is running locally or on a server you control, restart it:
+
+sh
+Copy
+Edit
+docker restart <registry_container_id>
+or if using a systemd service:
+
+sh
+Copy
+Edit
+sudo systemctl restart docker-registry
