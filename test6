@@ -181,3 +181,4 @@ oc delete pod vault-0 -n <NAMESPACE>
 Replace <NAMESPACE> with the namespace where Vault is deployed.
 
 
+echo "<DOCKER_PASSWORD>" | docker login <DOCKER_REGISTRY_URL> --username <DOCKER_USER> --password-stdin
