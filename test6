@@ -109,3 +109,5 @@ bash
 Copy
 Edit
 export KUBECONFIG=~/.kube/config
+
+oc patch storageclass <STORAGE_CLASS_NAME> -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
