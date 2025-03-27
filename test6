@@ -111,3 +111,73 @@ Edit
 export KUBECONFIG=~/.kube/config
 
 oc patch storageclass <STORAGE_CLASS_NAME> -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
+
+
+The errors in your screenshot indicate two primary issues:
+
+Incorrect Docker Registry Credentials
+
+Rook/Ceph-related Unbound PersistentVolumeClaims (PVCs)
+
+Since you have the Docker user ID and password, follow these steps to resolve the issue:
+
+Step 1: Update Docker Credentials
+You need to re-authenticate with the correct credentials in OpenShift.
+
+1.1 Log in to Docker Registry
+sh
+Copy
+Edit
+oc delete secret cdp-private-installer-docker-registry-secret
+oc create secret docker-registry cdp-private-installer-docker-registry-secret \
+    --docker-server=<DOCKER_REGISTRY_URL> \
+    --docker-username=<DOCKER_USER> \
+    --docker-password=<DOCKER_PASSWORD> \
+    --docker-email=<EMAIL>
+Replace:
+
+<DOCKER_REGISTRY_URL> with your Docker registry (e.g., quay.io or docker.io).
+
+<DOCKER_USER> and <DOCKER_PASSWORD> with your credentials.
+
+<EMAIL> with your email.
+
+1.2 Link Secret to the Default Service Account
+sh
+Copy
+Edit
+oc secrets link default cdp-private-installer-docker-registry-secret --for=pull
+This ensures that OpenShift pulls images using the correct credentials.
+
+Step 2: Fix Rook/Ceph and PVC Issues
+The error indicates that the Vault pod is stuck due to unbound PersistentVolumeClaims.
+
+2.1 Check PersistentVolumeClaims
+sh
+Copy
+Edit
+oc get pvc -n rook-ceph
+If you see any unbound PVCs, ensure that a suitable storage class exists:
+
+sh
+Copy
+Edit
+oc get storageclass
+If no default storage class is set, follow the storage class setup instructions from my previous response.
+
+2.2 Restart Rook-Ceph Operator
+sh
+Copy
+Edit
+oc get pods -n rook-ceph | grep rook-ceph-operator
+oc delete pod <ROOK_CEPH_OPERATOR_POD> -n rook-ceph
+Replace <ROOK_CEPH_OPERATOR_POD> with the pod name from the first command.
+
+2.3 Restart the Vault Pod
+sh
+Copy
+Edit
+oc delete pod vault-0 -n <NAMESPACE>
+Replace <NAMESPACE> with the namespace where Vault is deployed.
+
+
