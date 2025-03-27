@@ -1,0 +1,63 @@
+1. Verify Registry URL
+Try accessing the registry without logging in to check if it's reachable:
+
+sh
+Copy
+Edit
+curl -k -v http://sd-cwdz-kcu9.nam.nsroot.net:5000/v2/
+If it returns 403 Forbidden, this means authentication is required.
+
+If it returns 404 Not Found or fails to connect, the registry might not be running.
+
+2. Check If the Registry Requires HTTPS
+Since you are using http://, the registry may be enforcing HTTPS. Try using:
+
+sh
+Copy
+Edit
+docker login https://sd-cwdz-kcu9.nam.nsroot.net:5000
+If you see an SSL/TLS error, your registry requires HTTPS, and you may need to configure SSL certificates or use --insecure-registry as previously done.
+
+3. Verify Docker Credentials
+Manually log in:
+
+sh
+Copy
+Edit
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000
+If prompted, enter your admin username and password.
+
+If it fails, double-check the credentials are correct.
+
+4. Reset Credentials and Try Again
+Remove any old Docker login credentials:
+
+sh
+Copy
+Edit
+rm -f ~/.docker/config.json
+docker logout http://sd-cwdz-kcu9.nam.nsroot.net:5000
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000
+Enter your credentials manually to confirm they work.
+
+5. Restart Docker & Verify Login
+If all else fails, restart Docker and retry:
+
+sh
+Copy
+Edit
+sudo systemctl restart docker
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000
+6. Check Registry Logs (If You Have Access)
+If you have access to the registry logs, check them to see why login is being blocked:
+
+sh
+Copy
+Edit
+docker logs <registry-container-id>
+or if it's running as a system service:
+
+sh
+Copy
+Edit
+journalctl -u docker-registry --no-pager --lines=50
