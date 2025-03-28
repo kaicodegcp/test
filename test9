@@ -1,0 +1,84 @@
+Possible Causes & Solutions
+✅ 1. Check Registry Authentication Mode
+Since curl with -u admin:admin works but docker login does not, your registry might only support basic authentication and not token-based authentication.
+
+Try enabling basic authentication for the registry:
+
+sh
+Copy
+Edit
+export REGISTRY_STORAGE_DELETE_ENABLED=true
+Restart the registry container:
+
+sh
+Copy
+Edit
+docker restart <registry-container-name>
+✅ 2. Ensure the Registry is Set as an Insecure Registry
+Since your registry is using HTTP (http://), Docker might be blocking the login request because it's considered insecure.
+
+Check /etc/docker/daemon.json and ensure it includes:
+
+json
+Copy
+Edit
+{
+  "insecure-registries": ["sd-cwdz-kcu9.nam.nsroot.net:5000"]
+}
+Then, restart Docker:
+
+sh
+Copy
+Edit
+sudo systemctl restart docker
+Try logging in again:
+
+sh
+Copy
+Edit
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000 -u admin -p admin
+✅ 3. Check Registry Permissions
+Your registry might not have the correct access control for your user (admin).
+
+If you're using Harbor, Nexus, or another registry, ensure the admin user has the correct read/write permissions for the repository.
+
+If you're using a self-hosted registry, check if REGISTRY_AUTH is enabled.
+
+✅ 4. Manually Create the Docker Config
+Since ~/.docker/config.json does not exist, create it manually:
+
+sh
+Copy
+Edit
+mkdir -p ~/.docker
+cat <<EOF > ~/.docker/config.json
+{
+  "auths": {
+    "http://sd-cwdz-kcu9.nam.nsroot.net:5000": {
+      "auth": "$(echo -n 'admin:admin' | base64)"
+    }
+  }
+}
+EOF
+Then, try:
+
+sh
+Copy
+Edit
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000
+Final Steps
+If none of the above steps resolve the issue:
+
+Check Docker logs for more details:
+
+sh
+Copy
+Edit
+journalctl -u docker --no-pager | tail -n 50
+Verify the registry logs (if self-hosted):
+
+sh
+Copy
+Edit
+docker logs <registry-container-name>
+Try these steps and let me know the results! 🚀
