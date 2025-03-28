@@ -43,3 +43,106 @@ Edit
 docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000
 If it still fails, verify that your username and password are correct.
 
+
+A 401 Unauthorized error when accessing http://sd-cwdz-kcu9.nam.nsroot.net:5000/v2/ means your Docker registry requires authentication. Follow these steps to resolve the issue:
+
+Step 1: Verify Docker Login
+Try logging in again using the correct username and password:
+
+sh
+Copy
+Edit
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000
+Enter the username and password when prompted.
+
+If login fails, try specifying the username in the command:
+
+sh
+Copy
+Edit
+echo "your-password" | docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000 --username your-username --password-stdin
+If this still gives a 401 error, move to the next steps.
+
+Step 2: Verify Docker Credentials
+Check if your Docker credentials are stored correctly:
+
+sh
+Copy
+Edit
+cat ~/.docker/config.json
+If you don’t see authentication details, reset them:
+
+sh
+Copy
+Edit
+rm -rf ~/.docker/config.json
+Then try logging in again.
+
+Step 3: Ensure Registry Allows Insecure Connections
+Since your registry is using HTTP, Docker must be configured to allow insecure registries.
+
+Check if it's already set:
+
+sh
+Copy
+Edit
+cat /etc/docker/daemon.json
+If it doesn’t contain the registry under "insecure-registries", update it:
+
+sh
+Copy
+Edit
+sudo vi /etc/docker/daemon.json
+Add or modify it to include:
+
+json
+Copy
+Edit
+{
+  "insecure-registries": ["sd-cwdz-kcu9.nam.nsroot.net:5000"]
+}
+Then restart Docker:
+
+sh
+Copy
+Edit
+sudo systemctl restart docker
+Step 4: Verify Registry Permissions
+If you still get 401 Unauthorized, check if your user has access to the registry:
+
+Confirm with your registry administrator that your credentials are valid.
+
+Ensure your user has read and write access to the registry.
+
+You can check the registry logs for errors:
+
+sh
+Copy
+Edit
+docker logs <registry-container-name>
+Step 5: Test Registry Access
+After fixing the credentials and settings, run:
+
+sh
+Copy
+Edit
+curl -k -v -u "your-username:your-password" http://sd-cwdz-kcu9.nam.nsroot.net:5000/v2/
+If authentication is successful, you should get a response without 401 Unauthorized.
+
+Try logging in again:
+
+sh
+Copy
+Edit
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000
+Let me know if you still face issues! 🚀
+
+
+
+
+
+
+
+
+
+
