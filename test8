@@ -137,6 +137,20 @@ Edit
 docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000
 Let me know if you still face issues! 🚀
 
+Next Steps: Ensure Docker Login Works
+Now, try logging into the Docker registry with Docker itself:
+
+sh
+Copy
+Edit
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000 -u admin -p admin
+or
+
+sh
+Copy
+Edit
+echo "admin" | docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000 --username admin --password-stdin
+If the login is successful, Docker will store credentials in ~/.docker/config.json, and you can start pushing or pulling images.
 
 
 
