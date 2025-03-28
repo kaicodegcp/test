@@ -1,0 +1,45 @@
+Step 1: Verify the Registry Access
+Run the following command to check if the registry is reachable:
+
+sh
+Copy
+Edit
+curl -k -v http://sd-cwdz-kcu9.nam.nsroot.net:5000/v2/
+401 Unauthorized → Your credentials are required or incorrect.
+
+403 Forbidden → You don’t have permission to access the registry.
+
+404 Not Found → The registry service might not be running.
+
+If you still get 403 Forbidden, continue with the next steps.
+
+Step 2: Verify Your Docker Credentials
+Manually test your credentials:
+
+sh
+Copy
+Edit
+echo -n "admin:your-password" | base64
+Then, verify your current Docker config:
+
+sh
+Copy
+Edit
+cat ~/.docker/config.json
+If the auth value looks incorrect, delete and reconfigure your credentials.
+
+To reset:
+
+sh
+Copy
+Edit
+rm -rf ~/.docker/config.json
+docker logout http://sd-cwdz-kcu9.nam.nsroot.net:5000
+Then, try logging in again:
+
+sh
+Copy
+Edit
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000
+If it still fails, verify that your username and password are correct.
+
