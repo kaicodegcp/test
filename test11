@@ -1,0 +1,63 @@
+1. Search for "403" Errors in Logs
+Run this command to find lines mentioning 403:
+
+sh
+Copy
+Edit
+docker logs eap_registry 2>&1 | grep "403"
+This will directly show 403 errors instead of scrolling through huge logs.
+
+2. Check Authentication & Authorization Logs
+If you suspect authentication issues, filter logs for relevant messages:
+
+sh
+Copy
+Edit
+docker logs eap_registry 2>&1 | grep -i "auth"
+If you're using a token-based authentication system, it may indicate missing credentials.
+
+3. Inspect Registry Configuration
+Check if your registry is using authentication by looking at the registry configuration file (if applicable).
+
+sh
+Copy
+Edit
+docker exec -it eap_registry cat /etc/docker/registry/config.yml
+Look for authentication and access control settings.
+
+4. Verify Running Services & Ports
+Ensure your registry is running on the correct port (e.g., 5000):
+
+sh
+Copy
+Edit
+docker ps | grep eap_registry
+If it's using TLS (HTTPS) but you’re trying to log in via HTTP, you might need to configure insecure-registries.
+
+5. Enable Debug Logging (If Necessary)
+To get more details, restart the container with debug mode:
+
+sh
+Copy
+Edit
+docker run -d --name eap_registry -e REGISTRY_LOG_LEVEL=debug registry:2
+This will provide deeper insights into why authentication is failing.
+
+Let me know what you find in the logs! 🚀
+
+
+
+
+
+
+
+
+
+
+
+
+Search
+
+Reason
+
+
