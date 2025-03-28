@@ -1,0 +1,106 @@
+Possible Causes and Fixes
+✅ 1. Ensure Registry Allows Authentication
+Your registry might not be configured to accept login requests. Check your Docker registry configuration.
+
+If you're using a Docker private registry, check its config file (/etc/docker/registry/config.yml) and look for:
+
+yaml
+Copy
+Edit
+auth:
+  htpasswd:
+    realm: basic-realm
+    path: /auth/htpasswd
+If authentication is not enabled, add the auth section and restart your registry:
+
+sh
+Copy
+Edit
+docker restart <registry-container-name>
+✅ 2. Verify Registry Access Control
+If using a Harbor, Nexus, or other registry, ensure:
+
+The admin user has push/pull permissions for repositories.
+
+Authentication mode supports basic auth instead of token-based auth.
+
+For Harbor, check the user permissions via the UI.
+
+✅ 3. Allow HTTP Login in Docker Daemon
+Since your registry is using http://, Docker might reject logins to an insecure registry.
+
+Check your Docker daemon settings:
+
+Open the Docker config file:
+
+sh
+Copy
+Edit
+nano /etc/docker/daemon.json
+Ensure it includes:
+
+json
+Copy
+Edit
+{
+  "insecure-registries": ["sd-cwdz-kcu9.nam.nsroot.net:5000"]
+}
+Restart Docker:
+
+sh
+Copy
+Edit
+sudo systemctl restart docker
+Try logging in again:
+
+sh
+Copy
+Edit
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000 -u admin -p admin
+✅ 4. Manually Create Docker Login Credentials
+Since ~/.docker/config.json is missing, create it manually:
+
+sh
+Copy
+Edit
+mkdir -p ~/.docker
+cat <<EOF > ~/.docker/config.json
+{
+  "auths": {
+    "http://sd-cwdz-kcu9.nam.nsroot.net:5000": {
+      "auth": "$(echo -n 'admin:admin' | base64)"
+    }
+  }
+}
+EOF
+Then, retry:
+
+sh
+Copy
+Edit
+docker login http://sd-cwdz-kcu9.nam.nsroot.net:5000
+✅ 5. Check Registry Logs for Errors
+If the issue persists, check the registry logs for specific permission errors:
+
+sh
+Copy
+Edit
+docker logs <registry-container-name>
+Look for lines mentioning auth, permissions, or 403 Forbidden.
+
+🚀 Final Steps
+If using a custom registry, make sure it supports Docker authentication.
+
+If using Harbor/Nexus, verify user permissions and authentication settings.
+
+Ensure Docker daemon trusts the registry with insecure-registries.
+
+Try these and let me know what happens! 🚀
+
+
+
+
+
+
+
+
