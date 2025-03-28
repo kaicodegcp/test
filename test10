@@ -98,7 +98,26 @@ Ensure Docker daemon trusts the registry with insecure-registries.
 Try these and let me know what happens! 🚀
 
 
+ou can find the registry container name by listing all running Docker containers. Run:
 
+sh
+Copy
+Edit
+docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+Look for a container running an image like registry:2 or similar. The third column will be the container name.
+
+If your registry container isn't running, list all containers (including stopped ones):
+
+sh
+Copy
+Edit
+docker ps -a --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+Once you find the registry container name, you can inspect its logs with:
+
+sh
+Copy
+Edit
+docker logs <registry-container-name>
 
 
 
