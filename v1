@@ -1,0 +1,83 @@
+import os
+import glob
+import sys
+import multiprocessing
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+from pyarrow import field as pa_field
+
+def convert_sas_to_parquet(file_path, tgt_path, logger):
+    '''This function will convert sas files to parquet using a chunking approach for performance'''
+    
+    pqwriter = None
+    chunk_size = os.environ['READ_SAS_CHUNKSIZE']
+    logger.info(f"Chunk size: {chunk_size}")
+    
+    chunk_num = 0
+    for i, df in enumerate(pd.read_sas(file_path, encoding='latin-1', chunksize=int(chunk_size))):
+        if i == 0:
+            pa_schema = pa.Schema.from_pandas(df)
+            for j, item in enumerate(pa_schema.types):
+                if item.equals("null"):
+                    pa_schema = pa_schema.set(j, pa.field(pa_schema.names[j], pa.string()))
+            logger.info(f"Field type null to string conversion: index={str(j)}, field={pa_schema.names[j]}")
+        
+        pqwriter = pq.ParquetWriter(tgt_path, pa_schema)
+        table = pa.Table.from_pandas(df, preserve_index=False, schema=pa_schema)
+        pqwriter.write_table(table)
+        chunk_num += 1
+        
+    logger.info(f"Chunk processing complete. Total chunks: {chunk_num}")
+
+    # close the parquet writer
+    if pqwriter:
+        pqwriter.close()
+
+def read_sas_partition(file):
+    '''Used for multiprocessing of sas split files to parquet'''
+    df = pd.read_sas(file, encoding='latin-1')
+    return df
+
+def convert_sas_to_parquet_multi_process(part_sas_dir, tgt_file, root_file_name, logger):
+    '''Combine multiple sas files into one parquet'''
+    logger.info('Convert sas to parquet using multiprocessing begins ...')
+    
+    pqwriter = None
+    num_part_files = len(glob.glob(f"{part_sas_dir}/{root_file_name}*"))
+    
+    logger.info(f'part_sas_dir: {part_sas_dir}')
+    logger.info(f'tgt_file: {tgt_file}')
+    logger.info(f'num_part_files: {num_part_files}')
+    
+    if num_part_files == 0:
+        logger.error('There are no sas files found in the part sas dir! Cannot continue...')
+        return 1
+    
+    pool = multiprocessing.Pool()
+    
+    for i in range(num_part_files):
+        sas_partition = f"{part_sas_dir}/{root_file_name}_{i+1}.sas7bdat"
+        logger.info(f'Setting up schema, table and parquet writer')
+        df = pd.read_sas(sas_partition, encoding='latin-1')
+        pa_schema = pa.Schema.from_pandas(df)
+        
+        table = pa.Table.from_pandas(df, schema=pa_schema)
+        pqwriter = pq.ParquetWriter(tgt_file, pa_schema)
+        
+        # callback function to handle parquet writing asynchronously
+        def append_to_parquet(df):
+            chunk_id = df['chunk_id'].values[0]
+            logger.info(f'In callback append to parquet, chunk id is {chunk_id}')
+            table = pa.Table.from_pandas(df, schema=pa_schema)
+            pqwriter.write_table(table)
+        
+        pool.apply_async(read_sas_partition, args=(sas_partition,), callback=append_to_parquet)
+    
+    pool.close()
+    pool.join()
+    
+    if pqwriter:
+        pqwriter.close()
+    
+    return 0
