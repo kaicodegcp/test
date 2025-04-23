@@ -1,0 +1,59 @@
+import os
+import glob
+import sys
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+
+def read_sas_partition(file):
+    '''Reads one SAS file'''
+    return pd.read_sas(file, encoding='latin-1')
+
+def convert_sas_to_parquet(part_sas_dir, tgt_file, root_file_name, logger):
+    logger.info('Convert SAS to Parquet begins ...')
+
+    part_files = sorted(glob.glob(os.path.join(part_sas_dir, f'{root_file_name}*.sas7bdat')))
+
+    if not part_files:
+        logger.error('No SAS files found. Cannot continue...')
+        return 1
+
+    logger.info(f'Found {len(part_files)} SAS part files')
+
+    dataframes = []
+    for file in part_files:
+        logger.info(f"Reading {file}")
+        df = read_sas_partition(file)
+        dataframes.append(df)
+
+    logger.info("All SAS parts read successfully")
+
+    # Convert to Arrow tables
+    pa_schema = pa.Schema.from_pandas(dataframes[0])
+    for j, item in enumerate(pa_schema.types):
+        if pa.types.is_null(item):
+            pa_schema = pa_schema.set(j, pa.field(pa_schema.names[j], pa.string()))
+            logger.info(f"Field {pa_schema.names[j]} set to string due to null")
+
+    tables = [pa.Table.from_pandas(df, schema=pa_schema, preserve_index=False) for df in dataframes]
+    final_table = pa.concat_tables(tables)
+    pq.write_table(final_table, tgt_file)
+
+    logger.info(f"Final parquet file written to {tgt_file}")
+    return 0
+
+if __name__ == "__main__":
+    import logging
+
+    logger = logging.getLogger("SAS2Parquet")
+    logging.basicConfig(level=logging.INFO)
+
+    if len(sys.argv) != 4:
+        print("Usage: python script.py <sas_dir> <output_parquet_file> <root_file_name>")
+        sys.exit(1)
+
+    part_sas_dir = sys.argv[1]
+    tgt_file = sys.argv[2]
+    root_file_name = sys.argv[3]
+
+    sys.exit(convert_sas_to_parquet(part_sas_dir, tgt_file, root_file_name, logger))
