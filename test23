@@ -1,0 +1,86 @@
+import os
+import glob
+import sys
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+from multiprocessing import Pool
+
+def read_sas_partition(file):
+    '''Reads one SAS file'''
+    df = pd.read_sas(file, encoding='latin-1')
+    return df
+
+def convert_sas_to_parquet_multi_process(part_sas_dir, tgt_file, root_file_name, logger):
+    '''Main function to convert SAS part files to a single Parquet file in order'''
+    logger.info('Convert SAS to Parquet using multiprocessing begins ...')
+
+    # Step 1: Find all files matching the pattern and sort them to maintain order
+    part_files = sorted(glob.glob(os.path.join(part_sas_dir, f'{root_file_name}*.sas7bdat')))
+
+    if not part_files:
+        logger.error('No SAS files found. Cannot continue...')
+        return 1
+
+    logger.info(f'Found {len(part_files)} SAS part files')
+
+    temp_parquet_files = []
+
+    # Step 2: Use multiprocessing pool to process files in parallel
+    try:
+        with Pool() as pool:
+            dataframes = pool.map(read_sas_partition, part_files)
+
+        logger.info("Finished reading all SAS parts")
+
+        # Step 3: Build schema from the first dataframe
+        pa_schema = pa.Schema.from_pandas(dataframes[0])
+        for j, item in enumerate(pa_schema.types):
+            if pa.types.is_null(item):
+                pa_schema = pa_schema.set(j, pa.field(pa_schema.names[j], pa.string()))
+                logger.info(f"Field {pa_schema.names[j]} set to string due to null")
+
+        # Step 4: Write each part to an individual parquet file
+        for idx, df in enumerate(dataframes):
+            table = pa.Table.from_pandas(df, schema=pa_schema, preserve_index=False)
+            chunk_file = f"{tgt_file}_chunk{idx}.parquet"
+            pq.write_table(table, chunk_file)
+            temp_parquet_files.append(chunk_file)
+            logger.info(f"Chunk {idx} written to {chunk_file}")
+
+        # Step 5: Read back all chunk files in order and combine
+        all_tables = [pq.read_table(f) for f in temp_parquet_files]
+        final_table = pa.concat_tables(all_tables)
+        pq.write_table(final_table, tgt_file)
+        logger.info(f"Final parquet file written to {tgt_file}")
+
+        # Step 6: Cleanup temp parquet chunks
+        for f in temp_parquet_files:
+            try:
+                os.remove(f)
+                logger.info(f"Deleted temporary file: {f}")
+            except Exception as e:
+                logger.warning(f"Could not delete {f}: {e}")
+
+    except Exception as ex:
+        logger.error(f"Exception occurred: {ex}")
+        return 1
+
+    return 0
+
+if __name__ == "__main__":
+    import logging
+
+    test_logger = logging.getLogger("SAS2Parquet")
+    logging.basicConfig(level=logging.INFO)
+
+    if len(sys.argv) != 4:
+        print("Usage: python script.py <part_sas_dir> <target_parquet_file> <root_file_name>")
+        sys.exit(1)
+
+    part_sas_dir = sys.argv[1]
+    tgt_file = sys.argv[2]
+    root_file_name = sys.argv[3]
+
+    status = convert_sas_to_parquet_multi_process(part_sas_dir, tgt_file, root_file_name, test_logger)
+    sys.exit(status)
