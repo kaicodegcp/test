@@ -1,0 +1,5 @@
+oc run vault-test \
+  --image=sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:latest \
+  --restart=Never \
+  --overrides='{"spec": {"imagePullSecrets": [{"name": "vault-regcred"}]}}' \
+  -n nacho
