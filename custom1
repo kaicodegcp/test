@@ -1,0 +1,33 @@
+oc create configmap my-registry-cert-cm \
+  --from-file=my-registry-cert.pem=/path/to/my-registry-cert.pem \
+  -n <your-namespace>
+oc run test-pod \
+  --image=registry.access.redhat.com/ubi8/ubi \
+  --restart=Never \
+  --overrides='
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "test-pod"
+  },
+  "spec": {
+    "containers": [{
+      "name": "test",
+      "image": "registry.access.redhat.com/ubi8/ubi",
+      "command": ["sleep", "3600"],
+      "volumeMounts": [{
+        "name": "cert-volume",
+        "mountPath": "/etc/registry-certs",
+        "readOnly": true
+      }]
+    }],
+    "volumes": [{
+      "name": "cert-volume",
+      "configMap": {
+        "name": "my-registry-cert-cm"
+      }
+    }]
+  }
+}' \
+  -n <your-namespace>
