@@ -41,3 +41,16 @@ sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.13.2
 
 docker push sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.13.2
 
+
+oc create secret docker-registry vault-regcred \
+  --docker-server=sd-cwdz-kcu9.nam.nsroot.net:5000 \
+  --docker-username=<your-username> \
+  --docker-password=<your-password> \
+  --docker-email=unused@example.com \
+  -n nacho
+
+oc patch serviceaccount default -p '{"imagePullSecrets": [{"name": "vault-regcred"}]}' -n nacho
+
+oc run vault-test --rm -it --image=sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:latest --restart=Never -n nacho
+
+
