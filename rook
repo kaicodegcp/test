@@ -6,3 +6,13 @@ oc get pods -n rook-ceph
 oc get storageclass
 oc patch storageclass rook-ceph-block -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 oc get storageclass
+
+
+oc get all -n nacho --show-kind
+oc get secret -n nacho
+oc get events -n nacho --sort-by=.metadata.creationTimestamp
+oc get pods -n nacho | grep install
+oc logs <pod-name> -n nacho
+oc get secrets -n nacho
+oc get all -n nacho --show-kind
+oc get events -n nacho --sort-by=.metadata.creationTimestamp
