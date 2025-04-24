@@ -16,3 +16,15 @@ oc logs <pod-name> -n nacho
 oc get secrets -n nacho
 oc get all -n nacho --show-kind
 oc get events -n nacho --sort-by=.metadata.creationTimestamp
+
+# Pull from official Cloudera registry
+docker login docker.repository.cloudera.com
+docker pull docker.repository.cloudera.com/cloudera/cdp-private-cloud/vault:1.13.2
+
+# Tag for your private registry
+docker tag docker.repository.cloudera.com/cloudera/cdp-private-cloud/vault:1.13.2 \
+sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.13.2
+
+# Push it
+docker push sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.13.2
+
