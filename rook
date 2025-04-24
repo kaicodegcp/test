@@ -28,3 +28,16 @@ sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.13.2
 # Push it
 docker push sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.13.2
 
+
+/var/log/cloudera-scm-server/cdp-private-cloud-install-*.log
+grep -i error /var/log/cloudera-scm-server/cdp-private-cloud-install-*.log
+curl -s https://sd-cwdz-kcu9.nam.nsroot.net:5000/v2/cdp-private/cloudera_thirdparty/vault/tags/list
+{
+  "name": "vault",
+  "tags": ["1.13.2", "latest"]
+}
+docker tag sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:latest \
+sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.13.2
+
+docker push sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.13.2
+
