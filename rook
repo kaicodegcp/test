@@ -1,0 +1,8 @@
+oc create -f crds.yaml
+oc create -f common.yaml
+oc create -f operator-openshift.yaml
+oc create -f cluster-test.yaml
+oc get pods -n rook-ceph
+oc get storageclass
+oc patch storageclass rook-ceph-block -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+oc get storageclass
