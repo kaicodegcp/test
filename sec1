@@ -46,3 +46,10 @@ if __name__ == "__main__":
     print("Secret value:", secret_value)
 
 python3 get_secret.py /drpesr/pdrpesrr-rs-02/drpesrr_prod us-east-1
+
+
+
+aws sts assume-role \
+    --role-arn arn:aws:iam::123456789012:role/MyAdminRole \
+    --role-session-name mysession
+
