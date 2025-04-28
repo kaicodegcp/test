@@ -1,0 +1,48 @@
+get_secret.py
+import boto3
+from botocore.exceptions import ClientError
+import sys
+
+def get_secret(secret_name, region_name="us-east-1"):
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        print(f"Error retrieving secret: {e}")
+        sys.exit(1)
+
+    secret = get_secret_value_response['SecretString']
+    return secret
+
+if __name__ == "__main__":
+    # You can change this secret name or pass it via command line
+    secret_name = "/drpesr/pdrpesrr-rs-02/drpesrr_prod"
+    region_name = "us-east-1"
+
+    secret_value = get_secret(secret_name, region_name)
+    print("Secret value:", secret_value)
+
+pip3 install boto3
+python3 get_secret.py
+python3 get_secret.py /path/to/your/secret us-east-1
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python3 get_secret.py <secret_name> [region_name]")
+        sys.exit(1)
+
+    secret_name = sys.argv[1]
+    region_name = sys.argv[2] if len(sys.argv) > 2 else "us-east-1"
+
+    secret_value = get_secret(secret_name, region_name)
+    print("Secret value:", secret_value)
+
+python3 get_secret.py /drpesr/pdrpesrr-rs-02/drpesrr_prod us-east-1
