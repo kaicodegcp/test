@@ -42,3 +42,39 @@ bash
 Copy
 Edit
 Docker version 27.0.1, build ...
+
+
+Step 1: Find the installed Docker binary
+Try this to locate the actual binary:
+
+bash
+Copy
+Edit
+find / -name docker -type f -executable 2>/dev/null | grep -v podman
+You're likely to see something like:
+
+swift
+Copy
+Edit
+/usr/libexec/docker/docker
+🔧 Step 2: Create a proper symlink
+If found at /usr/libexec/docker/docker, then run:
+
+bash
+Copy
+Edit
+sudo ln -s /usr/libexec/docker/docker /usr/bin/docker
+Then verify:
+
+bash
+Copy
+Edit
+docker --version
+docker info
+💡 Bonus Tip:
+If docker-ce-cli was not installed correctly, reinstall from RPM:
+
+bash
+Copy
+Edit
+sudo dnf install -y docker-ce-cli-28.1.1-1.el8.x86_64.rpm
