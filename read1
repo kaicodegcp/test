@@ -1,0 +1,1 @@
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog --cacert /opt/registry/certs/domain.crt
