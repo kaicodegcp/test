@@ -63,3 +63,62 @@ nginx
 Copy
 Edit
 Docker version 28.1.1, build ...
+
+
+
+================
+Step 1: Locate the actual Docker binary (again, via RPM)
+bash
+Copy
+Edit
+rpm -ql docker-ce-cli | grep /docker$
+Expected output:
+
+bash
+Copy
+Edit
+/usr/bin/docker
+If this still returns nothing, then either:
+
+the CLI RPM is corrupted
+
+or the file is located in a non-standard path
+
+🔹 Step 2: Try force reinstall of docker-ce-cli to correct the path
+bash
+Copy
+Edit
+sudo rpm -Uvh --replacepkgs docker-ce-cli-28.1.1-1.el8.x86_64.rpm
+Then verify:
+
+bash
+Copy
+Edit
+ls -l /usr/bin/docker
+If the file now exists, test:
+
+bash
+Copy
+Edit
+docker --version
+🔹 Step 3: If still missing, extract manually from RPM
+bash
+Copy
+Edit
+mkdir ~/docker-extract && cd ~/docker-extract
+rpm2cpio ../docker-ce-cli-28.1.1-1.el8.x86_64.rpm | cpio -idmv
+Then copy the CLI binary into place:
+
+bash
+Copy
+Edit
+sudo cp -v ./usr/bin/docker /usr/bin/
+sudo chmod +x /usr/bin/docker
+Now test:
+
+bash
+Copy
+Edit
+docker --version
+docker info
+
