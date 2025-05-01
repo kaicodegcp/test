@@ -355,3 +355,49 @@ Copy
 Edit
 sudo ss -tulnp | grep 5000
 
+
+==================
+Here’s how to do it step-by-step:
+
+🔹 1. Remove podman-docker (conflicts with Docker CE)
+bash
+Copy
+Edit
+sudo dnf remove -y podman podman-docker
+🔹 2. Add Docker CE repository
+bash
+Copy
+Edit
+sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+Yes — use the CentOS 8 repo; it's compatible with RHEL 8.
+
+🔹 3. Install Docker Engine and CLI
+bash
+Copy
+Edit
+sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+🔹 4. Enable and start Docker service
+bash
+Copy
+Edit
+sudo systemctl enable --now docker
+Verify:
+
+bash
+Copy
+Edit
+docker version
+docker info
+🔹 5. Now rerun your Docker registry container
+Once Docker is active, run your secure-registry command again (as shown earlier).
+
+Let me know once Docker is installed and running — I’ll also prepare a script to automate the tagging and pushing of all your Cloudera .tar.gz images to this secure registry.
+
+
+
+
+
+
+
+
+
