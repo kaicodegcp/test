@@ -1,0 +1,53 @@
+Step 1: Create htpasswd file for authentication
+Install httpd-tools (if not already done):
+
+bash
+Copy
+Edit
+yum install httpd-tools -y
+Now generate admin:admin credentials:
+
+bash
+Copy
+Edit
+mkdir -p /opt/registry/auth
+htpasswd -Bc /opt/registry/auth/htpasswd admin
+(You'll be prompted for password, enter admin)
+
+🛠️ Step 2: Run Registry with TLS + Auth
+Run this command (adjust volume paths if needed):
+
+bash
+Copy
+Edit
+docker run -d \
+  --restart=always \
+  --name registry \
+  -v /docker2/registry:/var/lib/registry \
+  -v /opt/registry/certs:/certs \
+  -v /opt/registry/auth:/auth \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  -e REGISTRY_AUTH=htpasswd \
+  -e REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm" \
+  -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+  -p 5000:5000 \
+  registry:2
+🔁 Step 3: Verify It’s Running
+Check the logs:
+
+bash
+Copy
+Edit
+docker logs registry
+Then test using curl:
+
+bash
+Copy
+Edit
+curl -u admin:admin https://localhost:5000/v2/ --cacert /opt/registry/certs/ca.crt
+Expected response:
+
+Copy
+Edit
+{}
