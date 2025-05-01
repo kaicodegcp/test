@@ -1,0 +1,63 @@
+Step 1: Create TLS-Secured Docker Registry Container
+bash
+Copy
+Edit
+docker run -d \
+  --restart=always \
+  --name secure-registry \
+  -v /opt/registry/data:/var/lib/registry \
+  -v /opt/registry/certs:/certs \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  -p 5000:5000 \
+  registry:2
+🔒 Skip auth (htpasswd) unless Cloudera requires Docker credentials (if so, I’ll help re-add it).
+
+🧪 Step 2: Test HTTPS Access by Hostname
+bash
+Copy
+Edit
+export no_proxy=sd-wv58-kflz.nam.nsroot.net
+
+curl -v https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog --cacert /opt/registry/certs/ca.crt
+✅ You should see:
+
+json
+Copy
+Edit
+{"repositories":[]}
+📤 Step 3: Load, Tag & Push CDS Images
+Assuming your .tar.gz files are in /docker2/1.5.4-h10/:
+
+bash
+Copy
+Edit
+cd /docker2/1.5.4-h10
+
+for i in *.tar.gz; do
+  docker load -i "$i"
+  IMG=$(docker images --format "{{.Repository}}:{{.Tag}}" | head -1)
+  docker tag "$IMG" sd-wv58-kflz.nam.nsroot.net:5000/$IMG
+  docker push sd-wv58-kflz.nam.nsroot.net:5000/$IMG
+done
+🧩 Step 4: Make Registry Trusted by OpenShift/CDP Nodes
+On each node (or bake into your golden image):
+
+bash
+Copy
+Edit
+mkdir -p /etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000/
+cp /opt/registry/certs/ca.crt /etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000/ca.crt
+🧬 Step 5: Optional OpenShift Image Pull Secret (if auth is added later)
+bash
+Copy
+Edit
+oc create secret docker-registry cds-pull-secret \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password='<your-password>' \
+  --docker-email=no@email.com \
+  -n <cds-namespace>
+
+oc secrets link default cds-pull-secret --for=pull -n <cds-namespace>
