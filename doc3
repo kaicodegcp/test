@@ -42,3 +42,10 @@ docker run -d \
   -p 5000:5000 \
   registry:2
 Let me know once docker load -i registry.tar works — I’ll help you validate the registry using hostname next.
+
+
+
+==============
+export no_proxy=sd-wv58-kflz.nam.nsroot.net
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog --cacert /opt/registry/certs/ca.crt
+
