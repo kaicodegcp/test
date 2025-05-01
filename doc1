@@ -78,3 +78,29 @@ bash
 Copy
 Edit
 sudo dnf install -y docker-ce-cli-28.1.1-1.el8.x86_64.rpm
+
+
+
+=====================
+Please install the correct CLI RPM for Docker 28.1.1 using the link below:
+
+bash
+Copy
+Edit
+wget https://download.docker.com/linux/rhel/8/x86_64/stable/Packages/docker-ce-cli-28.1.1-1.el8.x86_64.rpm
+sudo dnf install -y docker-ce-cli-28.1.1-1.el8.x86_64.rpm
+Then verify:
+
+bash
+Copy
+Edit
+which docker
+docker --version
+You should now see something like:
+
+bash
+Copy
+Edit
+/usr/bin/docker
+Docker version 28.1.1, build ...
+
