@@ -124,3 +124,7 @@ bash
 Copy
 Edit
 oc run testpod --image=<registry-host>:5000/some-image --restart=Never -it --rm -- bash
+
+echo "alias docker=podman" >> ~/.bashrc
+source ~/.bashrc
+
