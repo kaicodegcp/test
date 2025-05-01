@@ -1,3 +1,32 @@
+Step 1: On a machine with internet access:
+bash
+Copy
+Edit
+docker pull registry:2
+docker save -o registry.tar registry:2
+🔹 Step 2: Transfer the file to your server
+Use scp or your organization's file transfer method:
+
+bash
+Copy
+Edit
+scp registry.tar youruser@sd-wv58-kflz.nam.nsroot.net:/docker2/
+🔹 Step 3: On your server, load the image
+bash
+Copy
+Edit
+cd /docker2
+docker load -i registry.tar
+You should now see registry:2 in:
+
+bash
+Copy
+Edit
+docker images
+🔹 Step 4: Retry your secure registry run
+bash
+Copy
+Edit
 docker run -d \
   --restart=always \
   --name secure-registry \
@@ -12,5 +41,4 @@ docker run -d \
   -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
   -p 5000:5000 \
   registry:2
-
-  
+Let me know once docker load -i registry.tar works — I’ll help you validate the registry using hostname next.
