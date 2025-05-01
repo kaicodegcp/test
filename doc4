@@ -1,0 +1,51 @@
+1. Confirm if the registry container is running
+bash
+Copy
+Edit
+docker ps | grep registry
+If nothing is shown or it's exited, it didn’t start properly.
+
+🔍 2. Check why the container might have failed
+bash
+Copy
+Edit
+docker logs secure-registry
+This will show if there was a certificate issue, volume mount error, etc.
+
+🔧 3. If needed, remove and recreate the container
+First clean up:
+
+bash
+Copy
+Edit
+docker rm -f secure-registry
+Then re-run it (with your current TLS and auth):
+
+bash
+Copy
+Edit
+docker run -d \
+  --restart=always \
+  --name secure-registry \
+  -v /opt/registry/data:/var/lib/registry \
+  -v /opt/registry/auth:/auth \
+  -v /opt/registry/certs:/certs \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  -e REGISTRY_AUTH=htpasswd \
+  -e REGISTRY_AUTH_HTPASSWD_REALM="Cloudera Docker Registry" \
+  -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+  -p 5000:5000 \
+  registry:2
+✅ 4. Then test again:
+bash
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog --cacert /opt/registry/certs/ca.crt
+You should get something like:
+
+json
+Copy
+Edit
+{"repositories":[]}
