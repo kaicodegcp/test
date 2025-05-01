@@ -4,3 +4,66 @@ for file in *.tar.gz; do
   echo "📦 Loading $file"
   docker load < "$file"
 done
+
+
+Create script
+bash
+Copy
+Edit
+vi /docker2/load_tag_push_images.sh
+📜 Paste this inside:
+bash
+Copy
+Edit
+#!/bin/bash
+
+IMAGE_DIR="/docker2/1.5.4-h10/images"
+REGISTRY="sd-wv58-kflz.nam.nsroot.net:5000"
+LOG_FILE="/docker2/image_load_push.log"
+
+echo "🔄 Starting image load & push at $(date)" > $LOG_FILE
+cd $IMAGE_DIR || exit 1
+
+for file in *.tar.gz; do
+  echo "📦 Loading $file..." | tee -a $LOG_FILE
+  docker load < "$file" >> $LOG_FILE 2>&1
+done
+
+echo "✅ All images loaded. Tagging now..." | tee -a $LOG_FILE
+
+docker images | grep -v "<none>" | grep -v "$REGISTRY" | while read repo tag id rest; do
+  new_tag="$REGISTRY/$repo:$tag"
+  echo "🔖 Tagging $repo:$tag -> $new_tag" | tee -a $LOG_FILE
+  docker tag "$repo:$tag" "$new_tag"
+done
+
+echo "🚀 Pushing images to $REGISTRY..." | tee -a $LOG_FILE
+
+docker images | grep "$REGISTRY" | while read repo tag id rest; do
+  echo "⬆️  Pushing $repo:$tag..." | tee -a $LOG_FILE
+  docker push "$repo:$tag" >> $LOG_FILE 2>&1
+done
+
+echo "🎉 Done! Finished at $(date)" | tee -a $LOG_FILE
+✅ Make It Executable
+bash
+Copy
+Edit
+chmod +x /docker2/load_tag_push_images.sh
+🚀 Run in Background with nohup
+bash
+Copy
+Edit
+nohup /docker2/load_tag_push_images.sh > /docker2/nohup.out 2>&1 &
+📄 Check Progress
+bash
+Copy
+Edit
+tail -f /docker2/image_load_push.log
+🧹 Cleanup Suggestion (Optional)
+Once pushed, you can optionally clean local images to free space:
+
+bash
+Copy
+Edit
+docker rmi $(docker images -q)
