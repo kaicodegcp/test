@@ -1,0 +1,46 @@
+Final Fix — Reload Docker NAT networking
+Please run these exact commands:
+
+🔹 1. Stop Docker & clean bridge
+bash
+Copy
+Edit
+sudo systemctl stop docker
+sudo iptables -t nat -F
+sudo iptables -t nat -X
+🔹 2. Recreate bridge & restart
+bash
+Copy
+Edit
+sudo systemctl start docker
+🔹 3. Verify DOCKER chain exists
+bash
+Copy
+Edit
+sudo iptables -t nat -nL | grep DOCKER
+It should return:
+
+java
+Copy
+Edit
+Chain DOCKER (2 references)
+🔹 4. Retry registry container
+bash
+Copy
+Edit
+docker rm -f secure-registry
+
+docker run -d \
+  --restart=always \
+  --name secure-registry \
+  -v /opt/registry/data:/var/lib/registry \
+  -v /opt/registry/auth:/auth \
+  -v /opt/registry/certs:/certs \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  -e REGISTRY_AUTH=htpasswd \
+  -e REGISTRY_AUTH_HTPASSWD_REALM="Cloudera Docker Registry" \
+  -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+  -p 5000:5000 \
+  registry:2
