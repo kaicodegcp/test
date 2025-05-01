@@ -286,3 +286,72 @@ Copy
 Edit
 {"repositories":[]}
 
+
+---------------------------------
+🔹 A. Fully Disable Podman’s CNI Conflicts
+Since Docker and Podman can conflict, let’s clean up Podman leftovers:
+
+bash
+Copy
+Edit
+systemctl stop podman
+systemctl disable podman
+rm -rf /var/lib/cni/
+🔹 B. Restart Docker and Docker Registry Container
+Restart Docker:
+
+bash
+Copy
+Edit
+systemctl restart docker
+Re-run your secure registry container:
+
+bash
+Copy
+Edit
+docker rm -f secure-registry  # remove old one
+docker run -d \
+  --restart=always \
+  --name secure-registry \
+  -v /opt/registry/data:/var/lib/registry \
+  -v /opt/registry/auth:/auth \
+  -v /opt/registry/certs:/certs \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  -e REGISTRY_AUTH=htpasswd \
+  -e REGISTRY_AUTH_HTPASSWD_REALM="Cloudera Docker Registry" \
+  -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+  -p 5000:5000 \
+  registry:2
+🔹 C. Fix Proxy Issues (even for localhost)
+Your environment is forcing proxy even for localhost. Let’s override that.
+
+Run this before any curl or Docker push:
+
+bash
+Copy
+Edit
+unset http_proxy
+unset https_proxy
+export no_proxy=localhost,127.0.0.1,sd-wv58-kflz.nam.nsroot.net
+Then test:
+
+bash
+Copy
+Edit
+curl -u admin:admin https://localhost:5000/v2/_catalog --cacert /opt/registry/certs/ca.crt
+🧪 If You Want to Debug:
+Check Docker logs:
+
+bash
+Copy
+Edit
+docker logs secure-registry
+Re-check port:
+
+bash
+Copy
+Edit
+sudo ss -tulnp | grep 5000
+
