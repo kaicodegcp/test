@@ -195,3 +195,11 @@ Edit
 sudo cp /opt/registry/certs/ca.crt /etc/pki/ca-trust/source/anchors/
 sudo update-ca-trust extract
 This step is critical if OpenShift needs to pull images from this secure registry.
+
+
+
+export no_proxy=sd-wv58-kflz.nam.nsroot.net,localhost,127.0.0.1
+export http_proxy=http://proxy.example.com:8080
+export https_proxy=http://proxy.example.com:8080
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog --cacert /opt/registry/certs/ca.crt
+
