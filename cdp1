@@ -1,0 +1,6 @@
+cd /docker2/1.5.4-h10/images/
+
+for file in *.tar.gz; do
+  echo "📦 Loading $file"
+  docker load < "$file"
+done
