@@ -1,0 +1,41 @@
+🔹 1. Create a working folder
+bash
+Copy
+Edit
+mkdir -p ~/docker27 && cd ~/docker27
+🔹 2. Download Docker CE 27.x RPMs (EL8 versions)
+These are the latest stable .rpm packages for Docker 27.x — direct from Docker's CentOS 8 (compatible with RHEL 8) repo:
+
+bash
+Copy
+Edit
+wget https://download.docker.com/linux/centos/8/x86_64/stable/Packages/docker-ce-27.0.1-1.el8.x86_64.rpm
+wget https://download.docker.com/linux/centos/8/x86_64/stable/Packages/docker-ce-cli-27.0.1-1.el8.x86_64.rpm
+wget https://download.docker.com/linux/centos/8/x86_64/stable/Packages/containerd.io-1.6.33-1.1.el8.x86_64.rpm
+wget https://download.docker.com/linux/centos/8/x86_64/stable/Packages/docker-buildx-plugin-0.12.0-1.el8.x86_64.rpm
+wget https://download.docker.com/linux/centos/8/x86_64/stable/Packages/docker-compose-plugin-2.26.1-1.el8.x86_64.rpm
+⚠️ If wget is blocked, you can download these from another machine and transfer via scp.
+
+🔹 3. Install all packages together
+bash
+Copy
+Edit
+sudo dnf install -y *.rpm
+This ensures all dependencies are resolved at once.
+
+🔹 4. Start and enable Docker
+bash
+Copy
+Edit
+sudo systemctl enable --now docker
+🔹 5. Verify the version
+bash
+Copy
+Edit
+docker --version
+You should see:
+
+bash
+Copy
+Edit
+Docker version 27.0.1, build ...
