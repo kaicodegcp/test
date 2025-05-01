@@ -203,3 +203,86 @@ export http_proxy=http://proxy.example.com:8080
 export https_proxy=http://proxy.example.com:8080
 curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog --cacert /opt/registry/certs/ca.crt
 
+
+
+--------------------------------
+✅ Immediate Action Plan
+🔹 1. ✅ Verify Docker Registry Container Is Running & Healthy
+bash
+Copy
+Edit
+docker ps -a | grep secure-registry
+docker logs secure-registry
+You're looking to confirm:
+
+It says "listening on 0.0.0.0:5000"
+
+No crash or fatal errors
+
+If container is not running, restart:
+
+bash
+Copy
+Edit
+docker restart secure-registry
+🔹 2. ✅ Confirm Port 5000 Is Open and Listening
+bash
+Copy
+Edit
+sudo ss -tulnp | grep 5000
+Expect output:
+
+nginx
+Copy
+Edit
+LISTEN  0  128  0.0.0.0:5000  ...
+If not open, then:
+
+bash
+Copy
+Edit
+sudo firewall-cmd --add-port=5000/tcp --permanent
+sudo firewall-cmd --reload
+And restart the container:
+
+bash
+Copy
+Edit
+docker restart secure-registry
+🔹 3. ✅ Confirm Host Resolves Correctly
+Try:
+
+bash
+Copy
+Edit
+ping sd-wv58-kflz.nam.nsroot.net
+curl https://localhost:5000/v2/_catalog --cacert /opt/registry/certs/ca.crt -u admin:admin
+If it works with localhost, but not FQDN → DNS or firewall/proxy issue.
+
+🔹 4. 🔧 Ensure no_proxy Is Set Properly
+Your current no_proxy is wrong. It only excludes citigroup.net.
+
+Fix it like this:
+
+bash
+Copy
+Edit
+export no_proxy=sd-wv58-kflz.nam.nsroot.net,localhost,127.0.0.1
+Add permanently to your shell config:
+
+bash
+Copy
+Edit
+echo 'export no_proxy=sd-wv58-kflz.nam.nsroot.net,localhost,127.0.0.1' >> ~/.bashrc
+🔁 Now Retry:
+bash
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog --cacert /opt/registry/certs/ca.crt
+If it works, you’ll get:
+
+json
+Copy
+Edit
+{"repositories":[]}
+
