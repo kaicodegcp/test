@@ -68,3 +68,5 @@ docker run -d \
   -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
   registry:2
 
+curl -u admin:admin https://localhost:5000/v2/ --cacert /opt/registry/certs/ca.crt
+
