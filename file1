@@ -70,3 +70,14 @@ docker run -d \
 
 curl -u admin:admin https://localhost:5000/v2/ --cacert /opt/registry/certs/ca.crt
 
+
+===========
+unset http_proxy
+unset https_proxy
+export no_proxy=localhost,127.0.0.1
+Then test the registry again:
+
+bash
+Copy
+Edit
+curl -u admin:admin https://localhost:5000/v2/ --cacert /opt/registry/certs/ca.crt
