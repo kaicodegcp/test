@@ -1,0 +1,7 @@
+wget https://ghcr.io/v2/docker/registry/blobs/sha256/af/af8b087d7cf39ccbdc3178f518b7de2a88b06fd362f9408509e1c97228d27e16/data -O registry.tar
+✅ After download, transfer it to /docker2/ on your secure host and run:
+
+bash
+Copy
+Edit
+docker load -i /docker2/registry.tar
