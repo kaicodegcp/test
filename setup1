@@ -1,0 +1,126 @@
+sudo yum install -y yum-utils
+sudo yum-config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
+
+sudo yum install -y docker-ce docker-ce-cli containerd.io
+
+# Start and enable Docker
+sudo systemctl start docker
+sudo systemctl enable docker
+
+step2
+mkdir -p /etc/docker/certs
+cd /etc/docker/certs
+
+# Generate key and cert
+openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt
+
+# Optional: Combine into one PEM for Cloudera
+cat domain.crt domain.key > domain.pem
+
+Step3
+mkdir -p /opt/registry/{data,certs,auth}
+
+# Copy TLS certs to registry path
+cp /etc/docker/certs/domain.crt /opt/registry/certs/
+cp /etc/docker/certs/domain.key /opt/registry/certs/
+
+# Start Docker registry container
+docker run -d \
+  --restart=always \
+  --name registry \
+  -v /opt/registry/data:/var/lib/registry \
+  -v /opt/registry/certs:/certs \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  -p 5000:5000 \
+  registry:2
+
+Step4
+{
+  "insecure-registries": [],
+  "registry-mirrors": [],
+  "debug": true,
+  "log-level": "info",
+  "hosts": ["unix:///var/run/docker.sock", "tcp://0.0.0.0:2375"],
+  "tlscacert": "/etc/docker/certs/ca.pem",
+  "tlscert": "/etc/docker/certs/domain.crt",
+  "tlskey": "/etc/docker/certs/domain.key"
+}
+
+sudo systemctl daemon-reexec
+sudo systemctl restart docker
+
+Step5
+mkdir -p /opt/cloudera-docker-images
+cd /opt/cloudera-docker-images
+
+# Extract and load each image
+for file in *.tar.gz; do
+    tar -xvzf "$file"
+    docker load -i $(basename "$file" .tar.gz).tar
+done
+
+Step6
+for img in $(docker images | grep cdp | awk '{print $1 ":" $2}'); do
+    docker tag $img myregistry.example.com:5000/$img
+    docker push myregistry.example.com:5000/$img
+done
+
+TLS
+openssl s_client -connect <registry-host>:5000
+
+On the CDM Admin Host and all OpenShift nodes, make sure Docker knows about the registry:
+
+Edit /etc/docker/daemon.json:
+
+json
+Copy
+Edit
+{
+  "insecure-registries": ["<registry-host>:5000"]
+}
+or if using valid TLS, make sure Docker trusts your CA.
+
+Then restart Docker:
+
+bash
+Copy
+Edit
+sudo systemctl restart docker
+✅ Step 3: Authenticate to Private Registry (if secured)
+If your registry is secured with auth (htpasswd or others):
+
+bash
+Copy
+Edit
+docker login <registry-host>:5000
+You must use this same username and password in Cloudera Manager install wizard under "Docker Username/Password"
+
+✅ Step 4: Provide the TLS Certificate in the Install Wizard
+In your Cloudera Manager installation wizard (as in your screenshot):
+
+Select: Use a custom Docker Repository
+
+URL: <registry-host>:5000
+
+Upload: the domain.crt or domain.pem
+
+Provide username/password if registry is secured
+
+✅ Step 5: Make Registry Reachable from OpenShift Pods
+Your OpenShift nodes (worker or infra nodes) must resolve and reach your registry:
+
+Ensure DNS for <registry-host> works inside OpenShift
+
+Or add to /etc/hosts on nodes
+
+Or expose the registry with a cluster-wide route if needed
+
+You can test from OpenShift with:
+
+bash
+Copy
+Edit
+oc run testpod --image=<registry-host>:5000/some-image --restart=Never -it --rm -- bash
