@@ -1,0 +1,54 @@
+Step 1: Remove encryption from private key
+Since .pw exists, your .key file is likely encrypted. You need to convert it to a plain (unencrypted) key.
+
+🔐 Decrypt the key:
+bash
+Copy
+Edit
+openssl rsa \
+  -in sd-wv58-kflz.nam.nsroot.net.key \
+  -passin file:sd-wv58-kflz.nam.nsroot.net.pw \
+  -out domain.key
+Now domain.key is usable by Docker.
+
+📜 Step 2: Combine cert and chain (optional, but recommended)
+To ensure full trust chain:
+
+bash
+Copy
+Edit
+cat sd-wv58-kflz.nam.nsroot.net.pem sd-wv58-kflz.nam.nsroot.net.ca-cert.pem > domain.crt
+📦 Step 3: Move files into Docker TLS location
+Create and move to:
+
+bash
+Copy
+Edit
+mkdir -p /opt/registry/certs
+cp domain.key domain.crt /opt/registry/certs/
+🚀 Step 4: Restart Docker registry
+bash
+Copy
+Edit
+docker rm -f registry
+
+docker run -d \
+  --restart=always \
+  --name registry \
+  --network=host \
+  -v /docker2/registry:/var/lib/registry \
+  -v /opt/registry/certs:/certs \
+  -v /opt/registry/auth:/auth \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  -e REGISTRY_AUTH=htpasswd \
+  -e REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm" \
+  -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+  registry:2
+🧪 Step 5: Test again
+bash
+Copy
+Edit
+curl -u admin:admin https://localhost:5000/v2/ --cacert /opt/registry/certs/domain.crt
+If it returns {}, you're all set!
+
