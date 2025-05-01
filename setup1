@@ -128,3 +128,70 @@ oc run testpod --image=<registry-host>:5000/some-image --restart=Never -it --rm 
 echo "alias docker=podman" >> ~/.bashrc
 source ~/.bashrc
 
+
+---------------------------------
+/home/gpabadmin/.certificates/incoming_certificates/
+
+🔐 TLS Cert Files:
+File Name	Purpose
+sd-wv58-kflz.nam.nsroot.net.pem	Likely your TLS certificate (CRT) ✅
+sd-wv58-kflz.nam.nsroot.net.key	Private key ✅
+sd-wv58-kflz.nam.nsroot.net.ca-cert.pem	CA certificate ✅
+sd-wv58-kflz.nam.nsroot.net.pw	Possibly a password file (ignored for TLS setup)
+
+✅ Secure Docker Registry with TLS Using Your Certs
+🛠 Step-by-Step
+🔹 1. Create Directory Structure
+bash
+Copy
+Edit
+sudo mkdir -p /opt/registry/{auth,certs,data}
+🔹 2. Copy TLS Certs to Registry Path
+bash
+Copy
+Edit
+sudo cp /home/gpabadmin/.certificates/incoming_certificates/sd-wv58-kflz.nam.nsroot.net.pem /opt/registry/certs/domain.crt
+sudo cp /home/gpabadmin/.certificates/incoming_certificates/sd-wv58-kflz.nam.nsroot.net.key /opt/registry/certs/domain.key
+sudo cp /home/gpabadmin/.certificates/incoming_certificates/sd-wv58-kflz.nam.nsroot.net.ca-cert.pem /opt/registry/certs/ca.crt
+🔹 3. Create a Docker Registry User & Password
+bash
+Copy
+Edit
+sudo dnf install httpd-tools -y
+sudo htpasswd -Bc /opt/registry/auth/htpasswd clouderauser
+Choose a strong password here.
+
+🔹 4. Start Docker Registry with TLS + Auth
+bash
+Copy
+Edit
+docker run -d \
+  --restart=always \
+  --name secure-registry \
+  -v /opt/registry/data:/var/lib/registry \
+  -v /opt/registry/auth:/auth \
+  -v /opt/registry/certs:/certs \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  -e REGISTRY_AUTH=htpasswd \
+  -e REGISTRY_AUTH_HTPASSWD_REALM="Cloudera Docker Registry" \
+  -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+  -p 5000:5000 \
+  registry:2
+🔹 5. Test Secure Access
+From same or another machine that trusts the CA:
+
+bash
+Copy
+Edit
+curl -u clouderauser:<yourpassword> https://<your-vm-name>:5000/v2/_catalog --cacert /opt/registry/certs/ca.crt
+🔹 6. Allow OpenShift Nodes or Client to Trust Your Cert
+If needed, copy the CA cert to:
+
+bash
+Copy
+Edit
+sudo cp /opt/registry/certs/ca.crt /etc/pki/ca-trust/source/anchors/
+sudo update-ca-trust extract
+This step is critical if OpenShift needs to pull images from this secure registry.
