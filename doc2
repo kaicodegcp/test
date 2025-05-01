@@ -1,0 +1,65 @@
+Step 1: Stop and disable all container services
+bash
+Copy
+Edit
+systemctl stop docker
+systemctl disable docker
+systemctl stop podman
+systemctl disable podman
+🔹 Step 2: Remove all Docker and Podman packages
+bash
+Copy
+Edit
+sudo dnf remove -y docker* podman* containerd* runc
+🔹 Step 3: Clean up leftover files and links
+bash
+Copy
+Edit
+rm -f /usr/bin/docker
+rm -rf /var/lib/docker
+rm -rf /var/lib/containerd
+rm -rf /etc/docker
+Optional cleanup:
+
+bash
+Copy
+Edit
+rm -rf /run/docker
+rm -rf /usr/libexec/docker
+✅ Now Install Docker 28.1.1
+🔹 Step 4: Create a working directory
+bash
+Copy
+Edit
+mkdir -p ~/docker28 && cd ~/docker28
+🔹 Step 5: Download the Docker 28.1.1 RPM packages
+bash
+Copy
+Edit
+wget https://download.docker.com/linux/rhel/8/x86_64/stable/Packages/docker-ce-28.1.1-1.el8.x86_64.rpm
+wget https://download.docker.com/linux/rhel/8/x86_64/stable/Packages/docker-ce-cli-28.1.1-1.el8.x86_64.rpm
+wget https://download.docker.com/linux/rhel/8/x86_64/stable/Packages/containerd.io-1.6.33-3.1.el8.x86_64.rpm
+wget https://download.docker.com/linux/rhel/8/x86_64/stable/Packages/docker-buildx-plugin-0.14.1-1.el8.x86_64.rpm
+wget https://download.docker.com/linux/rhel/8/x86_64/stable/Packages/docker-compose-plugin-2.26.1-1.el8.x86_64.rpm
+🔹 Step 6: Install all RPMs together
+bash
+Copy
+Edit
+sudo dnf install -y *.rpm
+🔹 Step 7: Enable and start Docker
+bash
+Copy
+Edit
+sudo systemctl enable --now docker
+🔹 Step 8: Verify Docker is working
+bash
+Copy
+Edit
+docker --version
+docker info
+You should see:
+
+nginx
+Copy
+Edit
+Docker version 28.1.1, build ...
