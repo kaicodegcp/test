@@ -1,0 +1,49 @@
+1. 🔍 Check if the deployment exists
+bash
+Copy
+Edit
+oc get deploy rook-ceph-operator -n rook-ceph
+If this returns nothing, then the operator deployment is missing. It needs to be created or fixed.
+
+2. 🔍 Check deployment conditions
+bash
+Copy
+Edit
+oc describe deploy rook-ceph-operator -n rook-ceph
+This will show if the deployment is misconfigured (e.g., paused, no replicas, invalid template, etc.)
+
+3. 🔍 Check service account & secret association
+Verify the service account used is correct and secret is referenced:
+
+bash
+Copy
+Edit
+oc get serviceaccount rook-ceph-operator -n rook-ceph -o yaml
+It should include:
+
+yaml
+Copy
+Edit
+imagePullSecrets:
+- name: docker-creds
+4. 🔁 Try manually scaling the deployment
+If rollout restart didn’t trigger pod recreation:
+
+bash
+Copy
+Edit
+oc scale deployment rook-ceph-operator --replicas=0 -n rook-ceph
+sleep 5
+oc scale deployment rook-ceph-operator --replicas=1 -n rook-ceph
+Then again:
+
+bash
+Copy
+Edit
+oc get pods -n rook-ceph -w
+Once a new pod is up, if it goes into ImagePullBackOff, describe it:
+
+bash
+Copy
+Edit
+oc describe pod <pod-name> -n rook-ceph
