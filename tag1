@@ -1,0 +1,12 @@
+docker images | grep amazonaws.com | while read repo tag img_id rest; do
+  new_repo=$(echo $repo | sed 's|.*/cloudera/|cloudera/|')
+  new_tag="sd-wv58-kflz.nam.nsroot.net:5000/$new_repo:$tag"
+  echo "🔖 Tagging $repo:$tag → $new_tag"
+  docker tag $repo:$tag $new_tag
+done
+
+
+docker images | grep sd-wv58-kflz.nam.nsroot.net | while read repo tag img_id rest; do
+  echo "⬆️  Pushing $repo:$tag"
+  docker push $repo:$tag
+done
