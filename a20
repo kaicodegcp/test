@@ -1,0 +1,40 @@
+oc get pods -n rook-ceph -o=jsonpath='{range .items[*]}{.metadata.name}{"\t"}{range .spec.containers[*]}{.image}{"\n"}{end}{end}' | grep sd-wv58-kflz
+This will print actual image references like:
+
+bash
+Copy
+Edit
+csi-cephfsplugin-67nzr	sd-wv58-kflz.nam.nsroot.net:5000/rook-ceph/csi-cephfsplugin:latest
+csi-rbdplugin-48v7w	sd-wv58-kflz.nam.nsroot.net:5000/rook-ceph/csi-rbdplugin:latest
+🔁 Step 2B. Push only those missing images
+Now SSH back to sd-wv58-kflz and push those images.
+
+Example (based on above output):
+
+bash
+Copy
+Edit
+docker images | grep csi
+# Confirm if you have the image locally (should show something like csi-cephfsplugin:latest)
+
+docker tag csi-cephfsplugin:latest sd-wv58-kflz.nam.nsroot.net:5000/rook-ceph/csi-cephfsplugin:latest
+docker push sd-wv58-kflz.nam.nsroot.net:5000/rook-ceph/csi-cephfsplugin:latest
+Repeat only for the failing pods’ images.
+
+🧠 Why This Is Faster:
+✅ You only upload what's needed.
+
+✅ You skip already pushed or unused images.
+
+✅ Speeds up your OpenShift rollout.
+
+Bonus: Automate it (Optional)
+If you want a quick loop from a list:
+
+bash
+Copy
+Edit
+for img in csi-cephfsplugin csi-rbdplugin csi-cephfsplugin-provisioner; do
+  docker tag $img:latest sd-wv58-kflz.nam.nsroot.net:5000/rook-ceph/$img:latest
+  docker push sd-wv58-kflz.nam.nsroot.net:5000/rook-ceph/$img:latest
+done
