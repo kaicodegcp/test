@@ -1,0 +1,61 @@
+Check if the secret exists:
+bash
+Copy
+Edit
+oc get secret docker-creds -n xyz -o yaml
+✅ Make sure it's of type kubernetes.io/dockerconfigjson
+
+2. Confirm it's correctly attached to serviceaccount:
+bash
+Copy
+Edit
+oc get serviceaccount default -n xyz -o yaml
+You should see:
+
+yaml
+Copy
+Edit
+imagePullSecrets:
+- name: docker-creds
+3. Confirm .dockerconfigjson contains valid data:
+bash
+Copy
+Edit
+oc get secret docker-creds -n xyz -o jsonpath="{.data.\.dockerconfigjson}" | base64 -d
+Verify this has:
+
+json
+Copy
+Edit
+"auths": {
+  "sd-wv58-kflz.nam.nsroot.net:5000": {
+    "username": "admin",
+    "password": "admin"
+  }
+}
+🚀 If Needed: Recreate Secret
+If any of the above steps fail, recreate the secret using:
+
+bash
+Copy
+Edit
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=admin@yourcompany.com \
+  -n xyz
+Then re-attach:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default -n xyz \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+And re-deploy:
+
+bash
+Copy
+Edit
+oc delete pod vault-0 -n xyz
+oc apply -f vault-test.yaml
