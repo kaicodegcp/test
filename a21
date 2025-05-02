@@ -1,0 +1,43 @@
+ls /docker2/1.5.4-h10/images | grep -i 'ceph\|rbd'
+You’ll get a list like:
+
+Copy
+Edit
+csi-cephfsplugin-provisioner.tar.gz
+csi-cephfsplugin.tar.gz
+csi-rbdplugin.tar.gz
+🚀 Step 2: Load, Tag, and Push Only Needed Images
+Run the following on sd-wv58-kflz for each image you found above:
+
+bash
+Copy
+Edit
+cd /docker2/1.5.4-h10/images
+
+# Example: For csi-cephfsplugin
+docker load -i csi-cephfsplugin.tar.gz
+docker tag csi-cephfsplugin:1.5.4-h10 sd-wv58-kflz.nam.nsroot.net:5000/rook-ceph/csi-cephfsplugin:latest
+docker push sd-wv58-kflz.nam.nsroot.net:5000/rook-ceph/csi-cephfsplugin:latest
+Repeat for:
+
+csi-rbdplugin.tar.gz
+
+csi-cephfsplugin-provisioner.tar.gz
+
+etc.
+
+Important: Replace 1.5.4-h10 with the correct tag inside the tar file (you can inspect it after docker load using docker images | grep csi).
+
+✅ Final Step (Verify)
+Once pushed, go back to bdgtr076x11t1 and restart the pods:
+
+bash
+Copy
+Edit
+oc rollout restart deployment rook-ceph-operator -n rook-ceph
+Then watch:
+
+bash
+Copy
+Edit
+oc get pods -n rook-ceph -w
