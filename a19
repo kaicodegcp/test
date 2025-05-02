@@ -1,0 +1,150 @@
+What Goes Where
+1. Image Loading + Tagging + Pushing
+Run on: sd-wv58-kflz.nam.nsroot.net
+
+Because this is where the Docker registry is hosted and where the images physically exist in /docker2/1.5.4-h10/images.
+
+Here’s what to do on this host:
+
+bash
+Copy
+Edit
+cd /docker2/1.5.4-h10/images
+
+# Unpack all tar.gz if needed
+for i in *.tar.gz; do tar -xzf "$i"; done
+
+# Load all tar files into docker
+for i in *.tar; do docker load -i "$i"; done
+
+# Tag & push each image to your registry (example)
+docker tag rook/ceph:master sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+docker push sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+
+# Repeat for others like:
+docker tag rook-ceph/csi-cephfsplugin:latest sd-wv58-kflz.nam.nsroot.net:5000/rook-ceph/csi-cephfsplugin:latest
+docker push sd-wv58-kflz.nam.nsroot.net:5000/rook-ceph/csi-cephfsplugin:latest
+2. Cluster Setup (oc commands / patching)
+Run on: bdgtr076x11t1.nam.nsroot.net
+
+This is your Cloudera CM admin node — you're using this to access the OpenShift cluster via oc.
+
+Once you’ve uploaded all necessary images to your registry, continue running oc commands from this CM node:
+
+bash
+Copy
+Edit
+# Restart the rook-ceph deployment (already done before)
+oc rollout restart deployment rook-ceph-operator -n rook-ceph
+
+# Monitor pods
+oc get pods -n rook-ceph -w
+✅ Sanity Test (Optional)
+From bdgtr076x11t1.nam.nsroot.net, try:
+
+bash
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog --cacert /opt/registry/certs/domain.crt
+To confirm that OpenShift node or CM can access your registry (authentication + TLS is fine).
+
+🧠 TL;DR Cheat Sheet
+Task	Run on host
+docker load / tag / push	sd-wv58-kflz.nam.nsroot.net
+oc patch / rollout / get pods	bdgtr076x11t1.nam.nsroot.net
+
+Would you like me to generate a bash script that you can run on sd-wv58-kflz.nam.nsroot.net to bulk load and push all images from /docker2/*/images?
+
+
+
+
+
+
+
+You said:
+may good to run back groud job on: sd-wv58-kflz.nam.nsroot.net ? 
+
+
+ChatGPT said:
+Yes — ✅ running a background job on sd-wv58-kflz.nam.nsroot.net to load, tag, and push all Docker images from /docker2/*/images is a very good idea — especially since:
+
+You’re not using internet access.
+
+You have a lot of .tar.gz images to load and push.
+
+Other operations (like OpenShift setup) are being run separately.
+
+✅ Here’s What You Should Do on sd-wv58-kflz.nam.nsroot.net
+Create a script file and run it in the background using nohup.
+
+📜 Step 1: Create script push_all_images.sh
+bash
+Copy
+Edit
+#!/bin/bash
+
+# Directory with images
+BASE_DIR="/docker2"
+
+# Your registry
+REGISTRY="sd-wv58-kflz.nam.nsroot.net:5000"
+
+# Log file
+LOGFILE="/var/log/docker_image_push.log"
+touch "$LOGFILE"
+
+echo "[`date`] Starting image push job..." >> "$LOGFILE"
+
+find "$BASE_DIR" -type f -name "*.tar.gz" | while read archive; do
+    echo "[`date`] Processing: $archive" >> "$LOGFILE"
+    
+    DIR=$(dirname "$archive")
+    cd "$DIR"
+
+    # Extract if tar.gz
+    tar -xzf "$archive" >> "$LOGFILE" 2>&1
+
+    # Find and load each .tar image
+    for TAR in *.tar; do
+        echo "[`date`] Loading $TAR" >> "$LOGFILE"
+        docker load -i "$TAR" >> "$LOGFILE" 2>&1
+
+        IMAGE=$(docker load -i "$TAR" | awk '/Loaded image:/ {print $3}')
+        
+        if [[ -n "$IMAGE" ]]; then
+            TAG="${REGISTRY}/${IMAGE}"
+            echo "[`date`] Tagging and pushing $IMAGE as $TAG" >> "$LOGFILE"
+            
+            docker tag "$IMAGE" "$TAG" >> "$LOGFILE" 2>&1
+            docker push "$TAG" >> "$LOGFILE" 2>&1
+        fi
+    done
+done
+
+echo "[`date`] Done pushing all images." >> "$LOGFILE"
+📦 Step 2: Make it executable
+bash
+Copy
+Edit
+chmod +x push_all_images.sh
+🏃 Step 3: Run in background
+bash
+Copy
+Edit
+nohup ./push_all_images.sh > /tmp/image_push.out 2>&1 &
+You can monitor it with:
+
+bash
+Copy
+Edit
+tail -f /var/log/docker_image_push.log
+✅ After This Is Running
+You can continue your oc work from bdgtr076x11t1.nam.nsroot.net — patching deployments, creating service accounts, restarting pods.
+
+Let me know if you want the script modified to:
+
+Only process specific images (rook/*, vault, etc.)
+
+Email/log summary when done
+
+Auto-clean temp .tar files after pushing
