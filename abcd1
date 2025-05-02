@@ -1,0 +1,18 @@
+# 1. Extract the tar.gz file
+cd /docker2
+tar -xzf rook-ceph-master.tar.gz
+
+# 2. Load the Docker image from the extracted tar (usually results in rook/ceph:master)
+docker load -i rook-ceph-master.tar
+
+# 3. Confirm the image is now available locally
+docker images | grep rook
+
+# Example output should be something like:
+# rook/ceph           master     abc123...
+
+# 4. Tag the image for your private registry
+docker tag rook/ceph:master sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+
+# 5. Push the image to your local Docker registry
+docker push sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
