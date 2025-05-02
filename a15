@@ -1,0 +1,72 @@
+🚨 Now: Deployment not creating new pod
+Let’s confirm the root cause by checking:
+
+bash
+Copy
+Edit
+oc describe deployment rook-ceph-operator -n rook-ceph
+Look under the Conditions and Events section.
+
+Alternatively, this will show if pods are being created but immediately fail:
+
+bash
+Copy
+Edit
+oc get replicaset -n rook-ceph
+Find the most recent one (owned by rook-ceph-operator) and:
+
+bash
+Copy
+Edit
+oc describe replicaset <replica-set-name> -n rook-ceph
+✅ Checklist: What to check next
+Here’s what might still be wrong:
+
+1. Image name typo or tag mismatch
+Double-check the image being used in the deployment:
+
+bash
+Copy
+Edit
+oc get deployment rook-ceph-operator -n rook-ceph -o=jsonpath='{.spec.template.spec.containers[*].image}'; echo
+You should get something like:
+
+bash
+Copy
+Edit
+sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+Now check this on the registry VM:
+
+bash
+Copy
+Edit
+docker image ls | grep ceph
+Or try listing with curl from OpenShift:
+
+bash
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/rook/ceph/tags/list --cacert /opt/registry/certs/domain.crt
+If the image doesn’t exist or the tag is wrong — the pod will never start.
+
+2. Firewall or DNS resolution failure
+Run this from an OpenShift pod (e.g. vault-test) or node:
+
+bash
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/  --cacert /etc/pki/ca-trust/source/anchors/domain.crt
+If it fails, the OpenShift worker cannot reach your registry
+
+You might need to open port 5000 on the registry host or update /etc/hosts
+
+3. Final fallback: use init pod
+As a test, try pulling the image manually in a test pod:
+
+bash
+Copy
+Edit
+oc run test-ceph \
+  --rm -it \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master \
+  --restart=Never -n rook-ceph
