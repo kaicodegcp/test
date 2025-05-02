@@ -1,0 +1,22 @@
+Fix – Grant proper SCC to service account:
+Run the following command to allow the service account to run privileged containers:
+
+bash
+Copy
+Edit
+oc adm policy add-scc-to-user privileged system:serviceaccount:rook-ceph:rook-ceph-operator
+🧪 Then:
+Once the SCC is applied:
+
+Restart the deployment:
+
+bash
+Copy
+Edit
+oc rollout restart deployment rook-ceph-operator -n rook-ceph
+Confirm pod status:
+
+bash
+Copy
+Edit
+oc get pods -n rook-ceph -w
