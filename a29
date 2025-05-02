@@ -1,0 +1,48 @@
+Step-by-Step: Manually Test vault-0 Pod
+Here’s how to simulate it and validate image pull, TLS, and startup:
+
+🛠️ 1. Create a test pod YAML for vault-0
+Save this YAML as vault-test.yaml (you can vi or cat > vault-test.yaml):
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vault-0
+  namespace: xyz
+spec:
+  containers:
+  - name: vault
+    image: sd-wv58-kflz.nam.nsroot.net:5000/vault:latest
+    command: ["vault"]
+    args: ["server", "-dev"]
+    ports:
+    - containerPort: 8200
+  restartPolicy: Never
+  imagePullSecrets:
+  - name: docker-creds
+Optional: You can change "vault server -dev" to any basic test command like ["sleep", "3600"] to avoid needing config.
+
+🚀 2. Apply the test pod:
+bash
+Copy
+Edit
+oc apply -f vault-test.yaml
+Then check:
+
+bash
+Copy
+Edit
+oc get pods -n xyz -w
+🧪 3. Inspect logs and status
+Once pod starts (or fails), run:
+
+bash
+Copy
+Edit
+oc describe pod vault-0 -n xyz
+oc logs vault-0 -n xyz
+If it fails with ImagePullBackOff, the image or registry access is broken again. If it runs, then Vault is ready, and the issue is narrowed to Cloudera install logic.
+
