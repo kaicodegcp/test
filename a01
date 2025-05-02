@@ -1,0 +1,48 @@
+oc get pods -n xyz -w
+When vault-0 appears, run:
+
+bash
+Copy
+Edit
+oc describe pod vault-0 -n xyz
+And check if it's:
+
+stuck in ImagePullBackOff
+
+failing on PVC
+
+or failing to run the container
+
+✅ 2. Check PVC Binding
+bash
+Copy
+Edit
+oc get pvc -n xyz
+If you see vault-statefulset PVC in Pending, your rook/ceph provisioner is not working. In that case:
+
+bash
+Copy
+Edit
+oc get pods -n rook-ceph
+Ensure rook-ceph-operator and ceph-related pods are all in Running.
+
+🧩 Tips Based on Your Setup
+You've now successfully:
+
+Loaded rook/ceph:master image
+
+Pushed it to your internal registry
+
+Patched service account with imagePullSecrets
+
+✅ So, Docker credentials are no longer the issue.
+
+🔧 What to Try Next
+Please run and share:
+
+bash
+Copy
+Edit
+oc describe pod vault-0 -n xyz
+oc get pvc -n xyz
+oc get events -n xyz --sort-by=.metadata.creationTimestamp
