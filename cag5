@@ -1,0 +1,125 @@
+Step-by-Step to Use xyz Namespace for CDS Install
+1. Create the namespace
+bash
+Copy
+Edit
+oc create namespace xyz
+2. Create the Docker Registry secret in xyz
+bash
+Copy
+Edit
+oc -n xyz create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=sk60554@citi.com
+3. Patch the default ServiceAccount in xyz
+bash
+Copy
+Edit
+oc -n xyz patch serviceaccount default -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+4. Update Cloudera Manager Install Wizard
+In the CDP Install Wizard GUI, do the following:
+
+Replace cds with xyz in the Namespace field when prompted.
+
+Make sure https://sd-wv58-kflz.nam.nsroot.net:5000/ is your Custom Docker Repository.
+
+Keep Docker user admin, password admin, and attach the domain.crt cert file.
+
+🔁 Validate Before Retry
+To confirm the image is accessible within the xyz namespace:
+
+bash
+Copy
+Edit
+curl -u admin:admin \
+ --cacert /opt/registry/certs/domain.crt \
+ https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thirdparty/vault/tags/list
+Make sure you see the 1.17.2-r0 tag in the output.
+
+🧼 Optional: Delete cds Namespace (If Not Used)
+bash
+Copy
+Edit
+oc delete namespace cds
+Would you like a full YAML manifest for a docker-creds secret and serviceaccount patch in case you want to version this in Git?
+
+
+
+
+
+
+
+
+You said:
+
+i ran these too 
+
+ChatGPT said:
+Thanks — I see you're also setting up a custom Docker registry certificate as a ConfigMap in both cds and openshift-config namespaces. That’s good, and here's a quick review and adjustment guide for moving forward with xyz namespace instead of cds.
+
+✅ What You Already Did (Reviewed)
+You've done:
+
+✔️ Deleted and recreated the my-registry-cert ConfigMap
+
+✔️ Targeted both cds and openshift-config namespaces
+
+✔️ Patched the default service account to include the custom cert via imagePullSecrets
+
+✅ What To Update for Namespace xyz
+Create ConfigMap in xyz:
+
+bash
+Copy
+Edit
+oc create configmap my-registry-cert --from-file=registry.pem=/tmp/docker/certs/registry.pem -n xyz
+Patch the default SA in xyz:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default -n xyz -p '{"imagePullSecrets": [{"name": "my-registry-cert"}]}'
+💡 Be sure the cert is mounted or recognized correctly inside OpenShift nodes for internal trusted communication.
+
+🔁 Validation Command
+To verify the config is visible and pods can pull:
+
+bash
+Copy
+Edit
+oc describe serviceaccount default -n xyz
+You should see:
+
+perl
+Copy
+Edit
+Image pull secrets: my-registry-cert
+And:
+
+bash
+Copy
+Edit
+oc get secret my-registry-cert -n xyz
+🧪 Optional: Run a test pod in xyz
+bash
+Copy
+Edit
+oc run vault-test --rm -it --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 -n xyz --restart=Never
+This confirms:
+
+Registry is trusted (cert works)
+
+Image pull is successful
+
+Auth is working (admin:admin)
+
+Would you like a single shell script for everything (cert, SA, test pod) under xyz?
+
+
+
+
+
+
+
