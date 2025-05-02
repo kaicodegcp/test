@@ -1,0 +1,48 @@
+Add the image pull secret to the correct namespace again (xyz):
+Ensure your secret is already created (you had docker-creds or docker-cred before):
+
+bash
+Copy
+Edit
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@citi.com \
+  -n xyz
+If it already exists, delete and recreate with above command.
+
+2️⃣ Patch the correct service account (cds-deploy-sa):
+bash
+Copy
+Edit
+oc patch serviceaccount cds-deploy-sa -n xyz \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+3️⃣ 🔁 Retry Vault Pod Deploy:
+You can either delete the failing Vault pod and let it recreate, or retrigger the Cloudera wizard to install again.
+
+To clean up manually:
+
+bash
+Copy
+Edit
+oc delete pod -n xyz -l app.kubernetes.io/name=vault
+Then watch it recreate:
+
+bash
+Copy
+Edit
+oc get pods -n xyz -w
+4️⃣ Confirm image is pulling correctly
+Check that the vault-0 pod is now pulling from your internal registry:
+
+bash
+Copy
+Edit
+oc describe pod vault-0 -n xyz | grep Image
+It should show:
+
+bash
+Copy
+Edit
+Image:  sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
