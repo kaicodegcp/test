@@ -1,0 +1,19 @@
+oc create sa cds-deploy-sa -n xyz
+
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=admin@local \
+  -n cds
+
+oc patch sa cds-deploy-sa -n xyz \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+
+oc create configmap registry-certs \
+  --from-file=sd-wv58-kflz.nam.nsroot.net.5000=/opt/registry/certs/domain.crt \
+  -n openshift-config  # Only once
+
+oc patch image.config.openshift.io/cluster \
+  --type=merge \
+  -p '{"spec":{"additionalTrustedCA":{"name":"registry-certs"}}}'
