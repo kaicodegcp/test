@@ -106,3 +106,42 @@ Would you like me to generate a clean YAML patch to copy-paste with everything f
 
 Search
 
+
+1. Copy domain.crt to trust anchors (on every OpenShift node)
+bash
+Copy
+Edit
+cp /opt/registry/certs/domain.crt /etc/pki/ca-trust/source/anchors/
+🔁 Run this on each worker and master node where containers might run.
+
+✅ 2. Update the node’s trust store
+bash
+Copy
+Edit
+update-ca-trust extract
+🔁 Also run this on each node after copying the cert.
+
+✅ 3. Create ConfigMap for registry certificate (from control plane)
+bash
+Copy
+Edit
+oc create configmap registry-certs \
+  --from-file=sd-wv58-kflz.nam.nsroot.net..5000=/opt/registry/certs/domain.crt \
+  -n openshift-config
+🔐 The --from-file=key=path format is required. Make sure key matches the registry host exactly (dots are replaced with double dots).
+
+✅ 4. Patch the OpenShift cluster to trust the registry certificate
+bash
+Copy
+Edit
+oc patch image.config.openshift.io/cluster \
+  --type=merge \
+  -p '{"spec":{"additionalTrustedCA":{"name":"registry-certs"}}}'
+✅ 5. Force nodes to reload the new CA trust
+bash
+Copy
+Edit
+oc delete pod -n openshift-machine-config-operator -l k8s-app=machine-config-daemon
+🕐 This will restart the Machine Config Daemon and apply the trusted certs cluster-wide.
+
+
