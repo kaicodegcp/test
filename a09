@@ -18,3 +18,24 @@ bash
 Copy
 Edit
 oc get pods -n rook-ceph -w
+============================
+
+Create the service account:
+
+bash
+Copy
+Edit
+oc create serviceaccount rook-ceph-operator -n rook-ceph
+Patch it:
+
+bash
+Copy
+Edit
+oc patch serviceaccount rook-ceph-operator -n rook-ceph \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+Delete pod to trigger retry:
+
+bash
+Copy
+Edit
+oc delete pod -n rook-ceph -l app=rook-ceph-operator
