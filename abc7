@@ -1,0 +1,122 @@
+1. Verify All Nodes Rebooted After Cert Patch
+After patching with:
+
+bash
+Copy
+Edit
+oc patch image.config.openshift.io/cluster --type=merge -p '{"spec":{"additionalTrustedCA":{"name":"registry-certs"}}}'
+The machine-config-daemon pods must be restarted — looks like you did it. But double check:
+
+bash
+Copy
+Edit
+oc get nodes
+# should show READY and age ~ few minutes if rebooted
+Otherwise:
+
+bash
+Copy
+Edit
+oc delete pod -n openshift-machine-config-operator -l k8s-app=machine-config-daemon
+🔍 2. Check image.config.openshift.io/cluster status:
+bash
+Copy
+Edit
+oc get image.config.openshift.io/cluster -o yaml | grep -A5 additionalTrustedCA
+✅ You should see your configmap:
+
+yaml
+Copy
+Edit
+additionalTrustedCA:
+  name: registry-certs
+🛠️ 3. Patch Signature Policy Admission (if enforced)
+Run:
+
+bash
+Copy
+Edit
+oc get imagecontentsourcepolicy -A
+If you have any configured, try:
+
+bash
+Copy
+Edit
+oc get mutatingwebhookconfigurations
+But you can temporarily allow insecure registry to test:
+
+⚠️ Only for internal test purposes
+
+bash
+Copy
+Edit
+oc edit image.config.openshift.io/cluster
+And in the spec, add:
+
+yaml
+Copy
+Edit
+registrySources:
+  insecureRegistries:
+    - sd-wv58-kflz.nam.nsroot.net:5000
+Then:
+
+bash
+Copy
+Edit
+oc delete pod -n openshift-machine-config-operator -l k8s-app=machine-config-daemon
+✅ 4. Validate with Test Pod
+Use the final trusted image pull:
+
+bash
+Copy
+Edit
+oc run vault-test \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 \
+  --restart=Never \
+  -n xyz \
+  --overrides='{
+    "spec": {
+      "serviceAccountName": "cds-deploy-sa",
+      "containers": [{
+        "name": "vault-test",
+        "image": "sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0",
+        "command": ["/bin/sh"],
+        "args": ["-c", "sleep 3600"]
+      }]
+    }
+  }'
+Then:
+
+bash
+Copy
+Edit
+oc get pod -n xyz
+✅ You’re Very Close!
+You’ve done all right things. The final issue is likely:
+
+Kubelet or crio hasn’t fully reloaded certs
+
+Or registry policy is rejecting TLS due to x509
+
+Reboot nodes again if needed, and revalidate above. Let me know once you’ve tested with insecureRegistries: or rebooted nodes — I’ll help verify the rollout.
+
+
+
+
+
+
+
+
+
+
+
+
+Search
+
+Deep research
+
+Create image
+
+
+
