@@ -1,0 +1,36 @@
+Re-run these exact working commands:
+1. Load rook-ceph image from the .tar again:
+bash
+Copy
+Edit
+docker load -i rook-ceph-master.tar
+2. Tag it properly for your registry:
+bash
+Copy
+Edit
+docker tag rook/ceph:master sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+3. Push it into your private registry:
+bash
+Copy
+Edit
+docker push sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+You should see all layers pushed or marked as "already exists".
+
+🚀 Then:
+Once the push is successful:
+
+Restart rook-ceph-operator:
+bash
+Copy
+Edit
+oc delete pod -n rook-ceph -l app=rook-ceph-operator
+🔁 After ~1–2 mins, check:
+bash
+Copy
+Edit
+oc get pods -n rook-ceph
+Make sure rook-ceph-operator shows Running.
+
+Then retry your CDP install wizard (Retry button), and the Vault pod (vault-0) should get created along with its PVC.
+
+Let me know once rook-ceph-operator is Running — I’ll help validate Vault right after that.
