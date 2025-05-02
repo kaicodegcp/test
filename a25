@@ -1,0 +1,57 @@
+ Quick Fix Steps
+Let’s find and push the Vault Docker image Cloudera is expecting.
+
+1. Find Vault image name from install log
+Use this command to extract it (use the actual namespace used for CDS install if not xyz):
+
+bash
+Copy
+Edit
+oc get events -n xyz --sort-by='.lastTimestamp' | grep vault
+Or if any pod was created, try:
+
+bash
+Copy
+Edit
+oc get pod -n xyz -o jsonpath="{..image}" | tr -s '[[:space:]]' '\n' | grep vault
+If nothing shows up, search the install.log from Cloudera Manager wizard.
+
+2. Manually Pull, Tag, Push Vault Image
+Once you find the Vault image (e.g., docker.io/library/vault:1.10.3), do this on sd-wv58-kflz:
+
+bash
+Copy
+Edit
+docker pull docker.io/library/vault:1.10.3
+
+docker tag docker.io/library/vault:1.10.3 \
+sd-wv58-kflz.nam.nsroot.net:5000/vault:1.10.3
+
+docker push sd-wv58-kflz.nam.nsroot.net:5000/vault:1.10.3
+Replace with actual tag seen in logs.
+
+3. Ensure docker-creds secret exists in xyz namespace
+You already patched the default SA, but confirm the secret is there:
+
+bash
+Copy
+Edit
+oc get secret docker-creds -n xyz
+If missing, create it:
+
+bash
+Copy
+Edit
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@citi.com \
+  -n xyz
+Then re-patch:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default -n xyz \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
