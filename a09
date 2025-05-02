@@ -1,0 +1,20 @@
+Correct Fix: Patch the correct service account
+Please run this:
+
+bash
+Copy
+Edit
+oc patch serviceaccount rook-ceph-operator -n rook-ceph \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+Then restart the pod:
+
+bash
+Copy
+Edit
+oc delete pod -n rook-ceph -l app=rook-ceph-operator
+Then check:
+
+bash
+Copy
+Edit
+oc get pods -n rook-ceph -w
