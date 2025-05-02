@@ -1,0 +1,31 @@
+Fix: Patch the ServiceAccount in namespace xyz
+Run the following:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default -n xyz \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+✅ You already did this earlier — but the vault-0 pod was probably created before the patch or didn’t pick it up.
+
+🔁 Now: Delete and Recreate vault-0 Pod
+To retry with proper auth:
+
+bash
+Copy
+Edit
+oc delete pod vault-0 -n xyz
+oc apply -f vault-test.yaml
+Make sure vault-test.yaml has this line under spec:
+
+yaml
+Copy
+Edit
+  imagePullSecrets:
+  - name: docker-creds
+Then run:
+
+bash
+Copy
+Edit
+oc get pod vault-0 -n xyz -w
