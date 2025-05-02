@@ -113,3 +113,16 @@ bash
 Copy
 Edit
 docker login sd-wv58-kflz.nam.nsroot.net:5000 -u admin -p admin
+
+
+docker run -d \
+  --restart=always \
+  -p 5000:5000 \
+  --name registry \
+  -v /docker2/registry:/var/lib/registry \
+  -v /opt/registry/certs:/certs \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  registry:2
+
