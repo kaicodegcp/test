@@ -1,0 +1,45 @@
+Update the Cloudera Manager CDS Docker Registry Configuration to explicitly use only sd-wv58-kflz.nam.nsroot.net:5000.
+
+Clean up any old ImagePullSecrets or ServiceAccounts in the cds namespace that reference sd-cwdz-kcu9.nam.nsroot.net.
+
+bash
+Copy
+Edit
+# Verify secrets
+oc -n cds get secrets | grep docker
+
+# Check contents
+oc -n cds get secret <docker-secret-name> -o yaml
+Look for any secret (likely docker-creds) that still has the old registry hostname in the .dockerconfigjson.
+
+Delete and recreate the docker creds secret with the correct hostname:
+
+bash
+Copy
+Edit
+oc -n cds delete secret docker-creds
+
+oc -n cds create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=sk60554@citi.com
+Patch the default service account again:
+
+bash
+Copy
+Edit
+oc -n cds patch serviceaccount default -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+✅ Re-validate Image Reference
+bash
+Copy
+Edit
+curl -u admin:admin \
+ --cacert /opt/registry/certs/domain.crt \
+ https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thirdparty/vault/tags/list
+You should see:
+
+json
+Copy
+Edit
+{"name":"cdp-private/cloudera_thirdparty/vault","tags":["1.17.2-r0"]}
