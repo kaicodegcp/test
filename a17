@@ -1,0 +1,17 @@
+Run the following command:
+
+bash
+Copy
+Edit
+oc logs pod/rook-ceph-operator-94c965f4d-jjqqx -n rook-ceph
+If that fails with multiple containers or init containers, use:
+
+bash
+Copy
+Edit
+oc logs pod/rook-ceph-operator-94c965f4d-jjqqx -n rook-ceph -c rook-ceph-operator
+🔍 Step 2: Also check the last exit reason:
+bash
+Copy
+Edit
+oc describe pod rook-ceph-operator-94c965f4d-jjqqx -n rook-ceph
