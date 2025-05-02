@@ -1,0 +1,58 @@
+Next steps to troubleshoot:
+Please run this command to see the actual image pull error:
+
+bash
+Copy
+Edit
+oc describe pod rook-ceph-operator-655894bbf-xs458 -n rook-ceph
+Look specifically in the Events section for lines like:
+
+arduino
+Copy
+Edit
+Failed to pull image "...": ...
+🔍 Possible root causes based on your symptoms:
+1. Image name mismatch
+Check if the image in the pod spec is exactly:
+
+text
+Copy
+Edit
+sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+To verify:
+
+bash
+Copy
+Edit
+oc get deployment rook-ceph-operator -n rook-ceph -o=jsonpath='{.spec.template.spec.containers[*].image}'
+Make sure it matches the image you pushed to your custom registry.
+
+2. Docker credentials not picked up
+You’ve patched the rook-ceph-operator SA, but we should verify that the pod is using this service account:
+
+bash
+Copy
+Edit
+oc get pod rook-ceph-operator-655894bbf-xs458 -n rook-ceph -o=jsonpath='{.spec.serviceAccountName}'
+If this shows empty or default, the credentials from rook-ceph-operator SA won’t be used. You’d then need to either:
+
+Edit the deployment to set:
+
+yaml
+Copy
+Edit
+spec:
+  template:
+    spec:
+      serviceAccountName: rook-ceph-operator
+Or
+
+Patch the default SA instead.
+
+✅ Optional: Check if your secret is visible to the pod
+Run:
+
+bash
+Copy
+Edit
+oc get secret -n rook-ceph
