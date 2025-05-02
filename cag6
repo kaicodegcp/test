@@ -1,0 +1,14 @@
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@citi.com \
+  -n xyz
+
+  oc delete secret docker-creds -n xyz
+
+  oc patch serviceaccount default -n xyz -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+
+  oc describe serviceaccount default -n xyz
+
+  oc run vault-test --rm -it --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 -n xyz --restart=Never
