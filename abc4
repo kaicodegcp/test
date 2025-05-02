@@ -1,0 +1,54 @@
+Fix: Inject the custom Docker registry cert into OpenShift
+You must add the registry CA certificate to the OpenShift cluster-wide trust store. Here's how:
+
+1. Create ConfigMap with your registry cert
+bash
+Copy
+Edit
+oc create configmap registry-certs \
+  --from-file=sd-wv58-kflz.nam.nsroot.net..5000=/opt/registry/certs/domain.crt \
+  -n openshift-config
+Note: The filename (before =) must match your registry hostname, replacing : with ..
+
+2. Patch the cluster Image config
+bash
+Copy
+Edit
+oc patch image.config.openshift.io/cluster \
+  --type=merge \
+  -p '{"spec":{"additionalTrustedCA":{"name":"registry-certs"}}}'
+3. Restart nodes or machine-config-daemon
+This step is crucial for the kubelet to trust the cert:
+
+bash
+Copy
+Edit
+oc delete pod -n openshift-machine-config-operator -l k8s-app=machine-config-daemon
+This will trigger a rolling reboot/update of nodes.
+
+🔁 After reboot completes:
+Try running your pod again:
+
+bash
+Copy
+Edit
+oc delete pod vault-test -n xyz
+# Then rerun:
+oc run vault-test \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 \
+  --restart=Never -n xyz \
+  --overrides='{
+    "spec": {
+      "serviceAccountName": "cds-deploy-sa",
+      "containers": [{
+        "name": "vault-test",
+        "image": "sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0",
+        "command": ["/bin/sh"],
+        "args": ["-c", "sleep 3600"]
+      }]
+    }
+  }'
+✅ Expected Result:
+vault-test pod should transition to Running state.
+
+Let me know if you'd like a single script version of this CA patching flow!
