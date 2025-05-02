@@ -1,0 +1,23 @@
+1. ✅ Create the ClusterRoleBinding (or check if it exists)
+Run the following to grant cluster-admin temporarily (for debugging; we’ll restrict later if needed):
+
+bash
+Copy
+Edit
+oc adm policy add-cluster-role-to-user cluster-admin system:serviceaccount:rook-ceph:rook-ceph-operator
+Alternatively, for more restrictive permissions, use:
+
+bash
+Copy
+Edit
+oc adm policy add-role-to-user admin system:serviceaccount:rook-ceph:rook-ceph-operator -n rook-ceph
+2. 🔁 Restart the Deployment
+bash
+Copy
+Edit
+oc rollout restart deployment rook-ceph-operator -n rook-ceph
+3. ✅ Check Pod Status
+bash
+Copy
+Edit
+oc get pods -n rook-ceph -w
