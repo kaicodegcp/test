@@ -1,0 +1,62 @@
+Fix this in 3 precise steps:
+✅ 1. Verify the pod is using the correct service account
+Run this:
+
+bash
+Copy
+Edit
+oc get deployment rook-ceph-operator -n rook-ceph -o=jsonpath='{.spec.template.spec.serviceAccountName}'; echo
+Expected output:
+
+cpp
+Copy
+Edit
+rook-ceph-operator
+If it's empty or default, patch the deployment:
+
+bash
+Copy
+Edit
+oc patch deployment rook-ceph-operator -n rook-ceph \
+  --type='json' -p='[{"op": "add", "path": "/spec/template/spec/serviceAccountName", "value": "rook-ceph-operator"}]'
+Then delete the pod again to restart it.
+
+✅ 2. Verify the secret exists and is of correct type
+Run:
+
+bash
+Copy
+Edit
+oc get secret docker-creds -n rook-ceph -o yaml
+Ensure it includes:
+
+yaml
+Copy
+Edit
+type: kubernetes.io/dockerconfigjson
+If it doesn't, recreate it like this:
+
+bash
+Copy
+Edit
+oc delete secret docker-creds -n rook-ceph
+
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@citi.com \
+  -n rook-ceph
+✅ 3. Patch the rook-ceph-operator SA with the secret
+bash
+Copy
+Edit
+oc patch serviceaccount rook-ceph-operator -n rook-ceph \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+✅ Finally: Restart the pod
+bash
+Copy
+Edit
+oc delete pod -n rook-ceph -l app=rook-ceph-operator
+Wait for the pod to restart. If everything is correct, the ImagePullBackOff will disappear and the pod will move to 1/1 READY.
+
