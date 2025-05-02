@@ -1,0 +1,37 @@
+🔧 Edit the deployment
+bash
+Copy
+Edit
+oc edit deployment rook-ceph-operator -n rook-ceph
+This opens a YAML in your default terminal editor (likely vi).
+
+2. ✏️ Under spec.template.spec.containers[0].args, add this line:
+yaml
+Copy
+Edit
+        - --disable-csi
+So it looks like:
+
+yaml
+Copy
+Edit
+    spec:
+      containers:
+      - name: rook-ceph-operator
+        args:
+          - ceph
+          - operator
+          - --disable-csi
+🔐 Do not delete existing args like ceph or operator, just add --disable-csi below them.
+
+3. 💾 Save and exit (:wq if using vi)
+4. 🔁 Restart the operator
+bash
+Copy
+Edit
+oc rollout restart deployment rook-ceph-operator -n rook-ceph
+5. 🕵️‍♂️ Watch the pods
+bash
+Copy
+Edit
+oc get pods -n rook-ceph -w
