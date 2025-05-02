@@ -1,0 +1,48 @@
+Likely Root Cause:
+The error still says ImagePullBackOff, which usually means the pod cannot authenticate to pull the image.
+
+This typically happens due to one of these:
+
+🔍 Checklist to Investigate:
+1. ✅ Check if the secret exists in the correct namespace
+Run:
+
+bash
+Copy
+Edit
+oc get secret docker-creds -n rook-ceph
+If it's missing, create it again:
+
+bash
+Copy
+Edit
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@citi.com \
+  -n rook-ceph
+Then patch:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default -n rook-ceph \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+2. 🛂 Confirm pod is actually using the default service account
+Run:
+
+bash
+Copy
+Edit
+oc get pod rook-ceph-operator-xxxxx -n rook-ceph -o jsonpath='{.spec.serviceAccountName}'
+Expected output: default
+
+If not, you'll need to patch that service account with the secret instead.
+
+3. 🔐 Test image pull manually in the rook-ceph namespace
+bash
+Copy
+Edit
+oc run test-pull --rm -it --image=sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master --restart=Never -n rook-ceph
+If that fails, it's definitely a registry access or TLS issue.
