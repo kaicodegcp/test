@@ -1,0 +1,53 @@
+Confirm Secret Type
+Run:
+
+bash
+Copy
+Edit
+oc get secret docker-creds -n xyz -o yaml
+✅ It must be of type:
+
+yaml
+Copy
+Edit
+type: kubernetes.io/dockerconfigjson
+If it’s something else (like Opaque), delete and recreate using:
+
+bash
+Copy
+Edit
+oc delete secret docker-creds -n xyz
+
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=admin@local \
+  -n xyz
+2. Verify Pod Event Log
+Check exactly why pull is failing:
+
+bash
+Copy
+Edit
+oc describe pod vault-test -n xyz | grep -A 10 Events
+It will give detailed pull error, such as:
+
+Unauthorized
+
+Cert not trusted
+
+No pull secret
+
+404 image not found
+
+Paste that here if you’d like help interpreting it.
+
+3. Double-check image name and tag
+Ensure there are no typos, and this works:
+
+bash
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thirdparty/vault/tags/list --cacert /opt/registry/certs/domain.crt
+Once the pod runs correctly using your private registry and patched service account in xyz, you can
