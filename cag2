@@ -1,0 +1,35 @@
+What to do next (fix missing image)
+You need to manually tag and push the vault:1.17.2-r0 image into your registry under the exact name Cloudera expects:
+
+🔁 Step-by-step fix:
+Locate or load the Vault image locally (you probably already loaded it from Cloudera’s .tar.gz files):
+
+bash
+Copy
+Edit
+docker images | grep vault
+Tag it to match what Cloudera Manager expects:
+
+bash
+Copy
+Edit
+docker tag cloudera_thirdparty/vault:1.17.2-r0 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+Push it to your registry:
+
+bash
+Copy
+Edit
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+Verify with curl:
+
+bash
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thirdparty/vault/tags/list \
+  --cacert /opt/registry/certs/domain.crt
+You should now get:
+
+json
+Copy
+Edit
+{"name":"cdp-private/cloudera_thirdparty/vault","tags":["1.17.2-r0"]}
