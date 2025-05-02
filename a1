@@ -1,0 +1,88 @@
+Root Cause from Logs
+The log clearly points to rook/ceph PVC binding failure:
+
+there are unbound immediate PersistentVolumeClaims
+
+This means:
+
+Your OpenShift cluster is trying to provision storage using rook-ceph for Vault,
+
+But no dynamic provisioner is successfully fulfilling the PersistentVolumeClaim request.
+
+✅ Action Items to Resolve
+Check Vault PVC Status:
+
+bash
+Copy
+Edit
+oc get pvc -n xyz
+Look for PVCs like vault-data-xyz-0 or similar that are stuck in Pending state.
+
+Check if a StorageClass is available and default:
+
+bash
+Copy
+Edit
+oc get sc
+Look for:
+
+A default storage class marked with (default)
+
+That supports ReadWriteOnce or ReadWriteOncePod
+
+If no default StorageClass is set or if rook-ceph is failing, you must fix this before Vault will deploy.
+
+Check rook-ceph pods for issues (if you are using rook):
+
+bash
+Copy
+Edit
+oc get pods -n rook-ceph
+And to describe them:
+
+bash
+Copy
+Edit
+oc describe pod <rook-ceph-operator-pod> -n rook-ceph
+Temporary Fix: Use Manual PVC Binding
+If dynamic provisioning fails, you can:
+
+Manually create a PersistentVolume
+
+Then bind it to the Vault PVC
+
+But ideally, fixing your dynamic provisioner (e.g. rook-ceph) is the best path forward.
+
+✅ Optional — Check Events for PVC Binding Failures
+bash
+Copy
+Edit
+oc get events -n xyz --sort-by='.metadata.creationTimestamp'
+Look for lines like:
+
+arduino
+Copy
+Edit
+FailedScheduling - no persistent volumes available for this claim
+Let me know what the PVC status shows, or if you'd like help setting a temporary static volume to proceed with Vault.
+
+
+
+
+
+
+
+
+
+
+
+
+Search
+
+Deep research
+
+Create image
+
+
+
+ChatGPT can make mistakes. Check important info.
