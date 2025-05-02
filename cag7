@@ -1,0 +1,20 @@
+docker pull sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+oc run vault-test --rm -it \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 \
+  --command -- /bin/sh -n xyz --restart=Never
+oc run test-pull \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 \
+  --restart=Never \
+  -n xyz \
+  --overrides='
+{
+  "spec": {
+    "imagePullSecrets": [{"name": "docker-creds"}],
+    "containers": [{
+      "name": "vault-test",
+      "image": "sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0",
+      "command": ["/bin/sh"],
+      "args": ["-c", "sleep 3600"]
+    }]
+  }
+}'
