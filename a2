@@ -1,0 +1,13 @@
+docker tag rook/ceph:master sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+docker push sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+oc -n rook-ceph edit deployment rook-ceph-operator
+
+from
+image: docker.io/rook/ceph:master
+to
+image: sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+oc patch serviceaccount default -n rook-ceph \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+oc get pvc -n xyz
+oc get pods -n xyz
+oc logs <vault-pod-name> -n xyz
