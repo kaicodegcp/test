@@ -14,3 +14,27 @@ docker images | grep sd-wv58-kflz.nam.nsroot.net | while read repo tag img_id re
   echo "⬆️  Pushing $repo:$tag"
   docker push $repo:$tag
 done
+
+
+You can even automate this:
+
+bash
+Copy
+Edit
+docker images | awk '{print $1":"$2}' | grep amazonaws.com | while read img; do
+  echo "🧹 Removing $img"
+  docker rmi "$img"
+done
+🧾 Final Tip:
+After cleanup, validate:
+
+bash
+Copy
+Edit
+docker images | grep sd-wv58
+This should show only clean, internal-registry-ready tags like:
+
+bash
+Copy
+Edit
+sd-wv58-kflz.nam.nsroot.net:5000/cloudera_cdsw/cron
