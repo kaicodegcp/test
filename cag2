@@ -33,3 +33,34 @@ json
 Copy
 Edit
 {"name":"cdp-private/cloudera_thirdparty/vault","tags":["1.17.2-r0"]}
+
+
+Step 1: Re-tag the image to your new registry with correct name and version:
+If this is the correct Vault image (even if tagged latest), tag it properly:
+
+bash
+Copy
+Edit
+docker tag sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:latest \
+sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+Then push:
+
+bash
+Copy
+Edit
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+🧼 Step 2: Optional — remove the old tag from local Docker image:
+bash
+Copy
+Edit
+docker rmi sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:latest
+This removes the bad reference without touching your image data (since the image ID still exists under your new tag).
+
+✅ Step 3: Retry in CM Wizard
+After pushing the new tag, return to Cloudera Manager wizard and click Retry. The pod should now successfully pull from:
+
+arduino
+Copy
+Edit
+sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+
