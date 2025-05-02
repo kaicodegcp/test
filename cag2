@@ -64,3 +64,11 @@ Copy
 Edit
 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
 
+
+
+=======
+curl -u admin:admin \
+  --cacert /opt/registry/certs/domain.crt \
+  https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thirdparty/vault/tags/list
+
+{"name":"cdp-private/cloudera_thirdparty/vault","tags":["1.17.2-r0"]}
