@@ -1,0 +1,23 @@
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@citi.com \
+  -n rook-ceph
+2. Patch the default service account in the rook-ceph namespace:
+bash
+Copy
+Edit
+oc patch serviceaccount default -n rook-ceph \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+3. Delete the failing rook-ceph pod to force re-creation:
+bash
+Copy
+Edit
+oc delete pod -n rook-ceph -l app=rook-ceph-operator
+Then check pod status:
+
+bash
+Copy
+Edit
+oc get pods -n rook-ceph -w
