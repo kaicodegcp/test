@@ -1,0 +1,2 @@
+oc create sa cds-deploy-sa -n xyz
+oc patch sa cds-deploy-sa -n xyz -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
