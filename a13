@@ -1,0 +1,49 @@
+Step 1: Clean Up Old Secrets and Service Account
+sh
+Copy
+Edit
+oc delete secret docker-creds -n rook-ceph
+oc delete sa rook-ceph-operator -n rook-ceph
+🛠 Step 2: Recreate Correct Secret
+sh
+Copy
+Edit
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@citi.com \
+  -n rook-ceph
+🛡 Step 3: Recreate and Patch Service Account
+sh
+Copy
+Edit
+oc create sa rook-ceph-operator -n rook-ceph
+
+oc patch serviceaccount rook-ceph-operator -n rook-ceph \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+🔁 Step 4: Patch Deployment to Use the Right Service Account
+sh
+Copy
+Edit
+oc patch deployment rook-ceph-operator -n rook-ceph \
+  --type='json' -p='[{"op": "add", "path": "/spec/template/spec/serviceAccountName", "value": "rook-ceph-operator"}]'
+🚀 Step 5: Restart the Deployment
+sh
+Copy
+Edit
+oc rollout restart deployment rook-ceph-operator -n rook-ceph
+You should now see a successful pod creation. To watch:
+
+sh
+Copy
+Edit
+oc get pods -n rook-ceph -w
+🧪 Bonus Debug (If Still Failing):
+If after these steps you're still seeing ImagePullBackOff, run:
+
+sh
+Copy
+Edit
+oc describe pod <rook-ceph-operator-pod-name> -n rook-ceph
+And check for:
