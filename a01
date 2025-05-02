@@ -46,3 +46,53 @@ Edit
 oc describe pod vault-0 -n xyz
 oc get pvc -n xyz
 oc get events -n xyz --sort-by=.metadata.creationTimestamp
+
+
+
+
+Push Rook-Ceph Image to Your Internal Registry
+You probably already have:
+
+bash
+Copy
+Edit
+rook/ceph:master
+But Cloudera may need a specific tag.
+
+Try inspecting the failing pod:
+
+bash
+Copy
+Edit
+oc describe pod rook-ceph-operator-5bd7d95bf6-fd6vz -n rook-ceph
+Get the image name. Then:
+
+bash
+Copy
+Edit
+# If image is for example rook/ceph:v1.8.8
+docker tag rook/ceph:v1.8.8 sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:v1.8.8
+docker push sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:v1.8.8
+Step 2: Patch ImagePullSecret for rook-ceph
+bash
+Copy
+Edit
+oc patch sa default -n rook-ceph \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+Step 3: Delete & Let It Restart
+bash
+Copy
+Edit
+oc delete pod rook-ceph-operator-5bd7d95bf6-fd6vz -n rook-ceph
+Let it pull the image from your secured internal registry.
+
+🟢 Then, Resume
+Once rook-ceph-operator is Running and PVCs are successfully created, you can safely click Retry in the Cloudera UI.
+
+Let me know the result of:
+
+bash
+Copy
+Edit
+oc describe pod rook-ceph-operator-xxx -n rook-ceph
+
