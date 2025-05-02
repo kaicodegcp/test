@@ -1,0 +1,18 @@
+oc run vault-test \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 \
+  --restart=Never \
+  -n xyz \
+  --overrides='
+{
+  "apiVersion": "v1",
+  "spec": {
+    "serviceAccountName": "cds-deploy-sa",
+    "containers": [{
+      "name": "vault-test",
+      "image": "sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0",
+      "command": ["/bin/sh"],
+      "args": ["-c", "sleep 3600"]
+    }]
+  }
+}'
+oc get pods -n xyz
