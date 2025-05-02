@@ -1,0 +1,22 @@
+CephCluster is in HEALTH_OK
+Run:
+
+bash
+Copy
+Edit
+oc -n rook-ceph get cephcluster
+You should see something like:
+
+bash
+Copy
+Edit
+NAME             DATADIRHOSTPATH   MONCOUNT   HEALTH      ...
+rook-ceph        /var/lib/rook     3          HEALTH_OK
+2. Ceph Toolbox (Optional but helpful)
+Deploy this if you want to run ceph status or inspect pools:
+
+bash
+Copy
+Edit
+oc -n rook-ceph apply -f toolbox.yaml
+oc -n rook-ceph exec -it deploy/rook-ceph-tools -- ceph status
