@@ -1,0 +1,10 @@
+oc get pod vault-0 -n xyz -o=jsonpath='{.spec.containers[*].image}'
+docker pull <vault-image>
+docker tag <vault-image> sd-wv58-kflz.nam.nsroot.net:5000/<vault-image>
+docker push sd-wv58-kflz.nam.nsroot.net:5000/<vault-image>
+
+oc patch serviceaccount default -n xyz \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+
+oc delete pod vault-0 -n xyz
+oc logs pod/vault-0 -n xyz
