@@ -1,0 +1,44 @@
+Load the Vault image
+bash
+Copy
+Edit
+docker load -i vault-1.17.2-r0.tar.gz
+This should show something like:
+
+arduino
+Copy
+Edit
+Loaded image: vault:<tag>
+2. Check the loaded image
+bash
+Copy
+Edit
+docker images | grep vault
+✅ Note the exact repository and tag, e.g. vault and 1.17.2
+
+3. Tag it for your registry
+If the tag is 1.17.2, then:
+
+bash
+Copy
+Edit
+docker tag vault:1.17.2 sd-wv58-kflz.nam.nsroot.net:5000/vault:1.17.2
+Or if tag is <none> (dangling), find the IMAGE ID and tag like this:
+
+bash
+Copy
+Edit
+docker tag <IMAGE_ID> sd-wv58-kflz.nam.nsroot.net:5000/vault:1.17.2
+4. Push to your registry
+bash
+Copy
+Edit
+docker push sd-wv58-kflz.nam.nsroot.net:5000/vault:1.17.2
+5. (Optional) Tag as latest if needed
+bash
+Copy
+Edit
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/vault:1.17.2 \
+           sd-wv58-kflz.nam.nsroot.net:5000/vault:latest
+
+docker push sd-wv58-kflz.nam.nsroot.net:5000/vault:latest
