@@ -1,0 +1,48 @@
+1. Validate that docker-creds exists in namespace xyz:
+bash
+Copy
+Edit
+oc get secret docker-creds -n xyz
+If not found, recreate it:
+
+bash
+Copy
+Edit
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=anyuser@yourorg.com \
+  -n xyz
+✅ 2. Confirm that image is accessible
+Run this curl to see tags:
+
+bash
+Copy
+Edit
+curl -u admin:admin \
+  --cacert /opt/registry/certs/domain.crt \
+  https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thirdparty/vault/tags/list
+You should see something like:
+
+json
+Copy
+Edit
+{"name":"cdp-private/cloudera_thirdparty/vault","tags":["1.17.2-r0"]}
+✅ 3. Run test pod using service account (not overrides)
+Instead of using --overrides, run like this:
+
+bash
+Copy
+Edit
+oc run vault-test \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 \
+  --restart=Never \
+  --serviceaccount=cds-deploy-sa \
+  -n xyz
+Then check pod status:
+
+bash
+Copy
+Edit
+oc get pod vault-test -n xyz
