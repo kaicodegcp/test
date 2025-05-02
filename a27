@@ -21,3 +21,6 @@ docker tag sd-wv58-kflz.nam.nsroot.net:5000/vault:1.17.2 \
            sd-wv58-kflz.nam.nsroot.net:5000/vault:latest
 
 docker push sd-wv58-kflz.nam.nsroot.net:5000/vault:latest
+
+oc delete pod -n xyz -l app.kubernetes.io/name=vault
+
