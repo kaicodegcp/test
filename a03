@@ -1,0 +1,53 @@
+Let's Troubleshoot in 3 Clear Steps:
+Step 1: Check if vault-0 pod exists
+bash
+Copy
+Edit
+oc get pods -n xyz | grep vault
+If it doesn't show up, then something is wrong with StatefulSet creation.
+
+Step 2: Check Persistent Volume Claims
+Vault uses a StatefulSet, which requires PVCs to be created.
+
+Run:
+
+bash
+Copy
+Edit
+oc get pvc -n xyz
+If it says "No resources found", this confirms the PVC wasn't bound (and Cloudera's wizard will time out waiting for it).
+
+Step 3: Check storage class is defined and default
+You previously had:
+
+cpp
+Copy
+Edit
+sc-ontap-nas (default)   csi.trident.netapp.io
+✅ Ensure this class exists and is set as default:
+
+bash
+Copy
+Edit
+oc get sc
+If not default, set it:
+
+bash
+Copy
+Edit
+oc patch storageclass sc-ontap-nas -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+📌 Next Action Plan
+Once PVCs can bind correctly, the Vault pod should auto-retry and come up.
+
+Then you can:
+✅ Retry the wizard again.
+
+Would you please send output of:
+
+oc get pods -n xyz | grep vault
+
+oc get pvc -n xyz
+
+oc get sc
+
+And I’ll confirm what to fix exactly.
