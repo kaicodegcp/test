@@ -67,3 +67,49 @@ Copy
 Edit
 docker load -i rook-ceph-master.tar.gz
 and it will load into /docker2/docker-lib, where you have 353 GB free.
+
+
+
+Check if registry container is running
+Run the following:
+
+bash
+Copy
+Edit
+docker ps -a | grep registry
+If you don't see your registry container running, start or recreate it.
+
+2. (Re)start your local Docker registry container
+You had previously set up a TLS-secured registry. Re-run your working container startup command:
+
+bash
+Copy
+Edit
+docker run -d \
+  -p 5000:5000 \
+  --restart=always \
+  --name registry \
+  -v /docker2/registry:/var/lib/registry \
+  -v /opt/registry/certs:/certs \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  registry:2
+Make sure the domain.crt and domain.key files are present in /opt/registry/certs.
+
+3. Confirm port is listening
+After running the container, verify it's listening:
+
+bash
+Copy
+Edit
+netstat -tulnp | grep 5000
+You should see Docker bound to port 5000 (or ss -lntp for modern systems).
+
+4. Try login again
+Then retry:
+
+bash
+Copy
+Edit
+docker login sd-wv58-kflz.nam.nsroot.net:5000 -u admin -p admin
