@@ -38,3 +38,71 @@ bash
 Copy
 Edit
 sd-wv58-kflz.nam.nsroot.net:5000/cloudera_cdsw/cron
+
+
+You’re now hitting a pull/image readiness issue during CDS Vault pod initialization:
+
+arduino
+Copy
+Edit
+Back-off pulling image "sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0"
+🔍 Root Causes (based on the log):
+CDP is trying to pull from sd-cwdz-kcu9.nam.nsroot.net:5000
+But your working registry is:
+
+makefile
+Copy
+Edit
+sd-wv58-kflz.nam.nsroot.net:5000
+➤ This means the install wizard is still using Cloudera’s original image path, not your private registry.
+
+Pods like vault-test, test-pod2 are stuck in BackOff state
+This confirms Kubernetes is unable to pull the image from that external registry — likely due to:
+
+No access
+
+Wrong image name
+
+Missing image in your private registry
+
+✅ Fix Steps
+✅ Step 1: Confirm image in your private registry
+Run:
+
+bash
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thirdparty/vault/tags/list --cacert /opt/registry/certs/domain.crt
+Expected:
+
+json
+Copy
+Edit
+{"name":"cdp-private/cloudera_thirdparty/vault","tags":["1.17.2-r0"]}
+If it's missing, go back and run docker load and docker tag for this image manually, e.g.:
+
+bash
+Copy
+Edit
+docker load < vault-1.17.2-r0.tar.gz
+docker tag cloudera_thirdparty/vault:1.17.2-r0 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+✅ Step 2: Patch imagePullSecret on the namespace (if not already done)
+bash
+Copy
+Edit
+oc -n cds create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@example.com
+
+oc -n cds patch serviceaccount default -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+✅ Step 3: Reconfigure Cloudera Manager to use your registry
+If the wizard keeps referencing sd-cwdz-kcu9..., you may need to:
+
+Manually override image prefix
+
+Ensure docker.repository.override is set in Helm values or CM configs
+
+Let me know what the curl on the Vault image returns — I’ll guide next based on that. You're right on the edge of success!
