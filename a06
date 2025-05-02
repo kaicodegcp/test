@@ -1,0 +1,16 @@
+Step 1: Patch the default service account
+bash
+Copy
+Edit
+oc patch serviceaccount default -n rook-ceph \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+🧹 Step 2: Delete the pod to trigger new image pull
+bash
+Copy
+Edit
+oc delete pod -n rook-ceph -l app=rook-ceph-operator
+🔁 Step 3: Watch the pod come up
+bash
+Copy
+Edit
+oc get pods -n rook-ceph -w
