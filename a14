@@ -1,0 +1,34 @@
+Fix Strategy: Explicitly overwrite both secrets section and imagePullSecrets
+Patch the rook-ceph-operator ServiceAccount like this:
+
+sh
+Copy
+Edit
+oc patch serviceaccount rook-ceph-operator -n rook-ceph \
+  --type=json \
+  -p='[
+    {"op": "replace", "path": "/imagePullSecrets", "value": [{"name": "docker-creds"}]},
+    {"op": "replace", "path": "/secrets", "value": [{"name": "docker-creds"}]}
+  ]'
+This removes the default dockercfg-* and forces use of only your docker-creds.
+
+🔄 Then Restart Deployment:
+sh
+Copy
+Edit
+oc rollout restart deployment rook-ceph-operator -n rook-ceph
+Or alternatively scale down and up:
+
+sh
+Copy
+Edit
+oc scale deployment rook-ceph-operator --replicas=0 -n rook-ceph
+sleep 5
+oc scale deployment rook-ceph-operator --replicas=1 -n rook-ceph
+🧪 Confirm:
+Check if the new pod uses only docker-creds:
+
+sh
+Copy
+Edit
+oc describe pod <pod-name> -n rook-ceph | grep -i imagepull
