@@ -1,0 +1,23 @@
+Fix: Use full image name in the docker tag command
+Run this on sd-wv58-kflz.nam.nsroot.net:
+
+bash
+Copy
+Edit
+docker tag \
+  368243204766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 \
+  sd-wv58-kflz.nam.nsroot.net:5000/vault:1.17.2
+Then push it:
+bash
+Copy
+Edit
+docker push sd-wv58-kflz.nam.nsroot.net:5000/vault:1.17.2
+(Optional if Cloudera wants :latest too):
+
+bash
+Copy
+Edit
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/vault:1.17.2 \
+           sd-wv58-kflz.nam.nsroot.net:5000/vault:latest
+
+docker push sd-wv58-kflz.nam.nsroot.net:5000/vault:latest
