@@ -1,0 +1,108 @@
+Final Fixes Checklist
+1. Ensure Docker Registry Host is in allowedRegistries
+In your OpenShift cluster config (oc edit image.config.openshift.io/cluster), add your registry:
+
+yaml
+Copy
+Edit
+spec:
+  registrySources:
+    allowedRegistries:
+      - sd-wv58-kflz.nam.nsroot.net:5000
+You must include this internal registry explicitly here. It’s currently missing in your screenshot.
+
+2. Confirm CA Certificate Setup on All Nodes
+You already:
+
+Copied domain.crt to /etc/pki/ca-trust/source/anchors/
+
+Ran update-ca-trust
+
+Created ConfigMap registry-certs with this cert
+
+Patched the cluster with additionalTrustedCA
+
+Now ensure all nodes have restarted their machine-config-daemon to apply the CA trust update:
+
+bash
+Copy
+Edit
+oc delete pod -n openshift-machine-config-operator -l k8s-app=machine-config-daemon
+This is confirmed ✅ based on your logs, good.
+
+3. Patch Image Config (Already Done)
+You ran this:
+
+bash
+Copy
+Edit
+oc patch image.config.openshift.io/cluster \
+  --type=merge -p '{"spec":{"additionalTrustedCA":{"name":"registry-certs"}}}'
+Perfect ✅.
+
+🧪 Validation Command (Final)
+Run the pod test with the correct ServiceAccount and TLS certs:
+
+bash
+Copy
+Edit
+oc run vault-test \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 \
+  --restart=Never -n xyz \
+  --overrides='
+{
+  "apiVersion": "v1",
+  "spec": {
+    "serviceAccountName": "cds-deploy-sa",
+    "containers": [{
+      "name": "vault-test",
+      "image": "sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0",
+      "command": ["/bin/sh"],
+      "args": ["-c", "sleep 3600"]
+    }]
+  }
+}'
+Then check:
+
+bash
+Copy
+Edit
+oc get pod vault-test -n xyz
+If it enters Running state, you are good to go 🎉.
+
+🛠 If Still ImagePullBackOff
+Double-check:
+
+Cert chain: domain.crt should contain full chain up to trusted root (you can use openssl x509 -in domain.crt -text -noout to inspect).
+
+The image registry URL matches exactly (port included, no typo).
+
+You restarted machine-config-daemon pods (you did ✅).
+
+Use this to see actual node errors:
+
+bash
+Copy
+Edit
+oc logs -n xyz <vault-test-pod-name> -c vault-test
+Or for better error:
+
+bash
+Copy
+Edit
+oc describe pod vault-test -n xyz
+Would you like me to generate a clean YAML patch to copy-paste with everything fixed for OpenShift image.config.openshift.io?
+
+
+
+
+
+
+
+
+
+
+
+
+Search
+
