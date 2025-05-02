@@ -16,3 +16,54 @@ docker tag rook/ceph:master sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
 
 # 5. Push the image to your local Docker registry
 docker push sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+
+How to fix it
+Option 1: Temporarily clean Docker to free space
+bash
+Copy
+Edit
+docker system prune -a --volumes
+⚠️ Warning: this deletes all stopped containers, unused images, and volumes.
+
+Option 2: Move Docker storage to /docker2 (recommended in your case)
+Stop Docker:
+
+bash
+Copy
+Edit
+systemctl stop docker
+Create a new Docker root directory:
+
+bash
+Copy
+Edit
+mkdir -p /docker2/docker-lib
+Update Docker to use this new location:
+
+Edit or create: /etc/docker/daemon.json
+
+json
+Copy
+Edit
+{
+  "data-root": "/docker2/docker-lib"
+}
+Restart Docker:
+
+bash
+Copy
+Edit
+systemctl start docker
+Confirm new root:
+
+bash
+Copy
+Edit
+docker info | grep "Docker Root Dir"
+Now try:
+
+bash
+Copy
+Edit
+docker load -i rook-ceph-master.tar.gz
+and it will load into /docker2/docker-lib, where you have 353 GB free.
