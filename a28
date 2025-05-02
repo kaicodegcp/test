@@ -1,0 +1,87 @@
+1. Check if the vault-0 StatefulSet spec exists:
+Run:
+
+bash
+Copy
+Edit
+oc get statefulsets -n xyz
+If you see vault listed, then continue with:
+
+bash
+Copy
+Edit
+oc get statefulset vault -n xyz -o yaml > vault-ss.yaml
+🛠️ 2. Edit the vault-ss.yaml to run manually:
+Open the file in a text editor and adjust:
+
+Add replicas: 1
+
+Remove any volumeClaimTemplates or storage class if they’re causing issues
+
+Make sure the image is correct:
+
+yaml
+Copy
+Edit
+image: sd-wv58-kflz.nam.nsroot.net:5000/vault:latest
+You can also add imagePullSecrets under the spec.template.spec section:
+
+yaml
+Copy
+Edit
+imagePullSecrets:
+  - name: docker-creds
+🚀 3. Apply the file:
+bash
+Copy
+Edit
+oc apply -f vault-ss.yaml -n xyz
+Then check pod creation:
+
+bash
+Copy
+Edit
+oc get pods -n xyz -w
+🧪 4. If pod vault-0 appears:
+Run:
+
+bash
+Copy
+Edit
+oc logs vault-0 -n xyz
+And:
+
+bash
+Copy
+Edit
+oc describe pod vault-0 -n xyz
+🎯 Goal:
+If the vault-0 pod starts and runs properly, then:
+
+Your registry, image, secrets, and namespace config are now valid
+
+You can safely retry the CDS installation
+
+Would you like help generating a cleaned vault-ss.yaml to test with? If yes, just send me the output of:
+
+bash
+Copy
+Edit
+oc get statefulset vault -n xyz -o yaml
+Let’s test this head-on and get you past this blocker.
+
+
+
+
+
+
+
+
+
+
+
+
+Search
+
+Deep research
+
