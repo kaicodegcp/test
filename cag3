@@ -1,0 +1,42 @@
+Remove wrong-host image tags with docker:
+Run the following commands to untag the old references:
+
+bash
+Copy
+Edit
+docker rmi sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera/admissiond:latest
+
+docker rmi sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:latest
+This will produce output like:
+
+vbnet
+Copy
+Edit
+Untagged: sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera/admissiond:latest
+Untagged: sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:latest
+The image layers will not be deleted if other tags (like sd-wv58-kflz...) still reference them — so you're safe.
+
+🔄 Optional: Retag and push admissiond to your new registry
+If admissiond isn't already present in your new registry, tag and push:
+
+bash
+Copy
+Edit
+docker tag sd-cwdz-kcu9.nam.nsroot.net:5000/cdp-private/cloudera/admissiond:latest \
+sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/admissiond:2024.0.18.3-15
+
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/admissiond:2024.0.18.3-15
+(Replace the tag with the correct one if needed.)
+
+Let me know if you want a script to clean/tag/push all remaining images too.
+
+You said:
+validation command?
+ChatGPT said:
+To validate that only the correct registry host (sd-wv58-kflz.nam.nsroot.net) is in use after cleanup and tagging, use the following:
+
+✅ Check All Image Tags for Only the Correct Host:
+bash
+Copy
+Edit
+docker images --format "{{.Repository}}:{{.Tag}}" | grep -v sd-wv58-kflz.nam.nsroot.net
