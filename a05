@@ -1,0 +1,30 @@
+Step 1: Edit the deployment
+bash
+Copy
+Edit
+oc edit deployment rook-ceph-operator -n rook-ceph
+Find this line (or similar):
+
+yaml
+Copy
+Edit
+image: docker.io/rook/ceph:master
+👉 Change it to:
+
+yaml
+Copy
+Edit
+image: sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+Save and exit.
+
+🔁 Step 2: Delete the current pod to re-pull the image
+bash
+Copy
+Edit
+oc delete pod -n rook-ceph -l app=rook-ceph-operator
+Then check:
+
+bash
+Copy
+Edit
+oc get pods -n rook-ceph -w
