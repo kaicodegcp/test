@@ -1,0 +1,26 @@
+Correct Steps to Fix It
+Retag your existing local image (which is rook/ceph:master)
+
+bash
+Copy
+Edit
+docker tag rook/ceph:master sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+Push it to your secure internal registry
+
+bash
+Copy
+Edit
+docker push sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+Ensure service account in rook-ceph namespace has the imagePullSecret:
+
+bash
+Copy
+Edit
+oc patch sa default -n rook-ceph \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+Delete the rook-ceph pod so it restarts and pulls from the secure registry:
+
+bash
+Copy
+Edit
+oc delete pod -n rook-ceph -l app=rook-ceph-operator
