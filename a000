@@ -4,3 +4,43 @@ sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-21
 
 # Push it to your custom Docker registry
 docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215
+
+
+================
+
+Confirm: You must run these three critical steps
+Based on what you've shown, you likely only loaded the image and did not tag/push it to the correct internal path.
+
+✅ 1. Tag the image with the correct registry path
+bash
+Copy
+Edit
+docker tag 368243204766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera_thirdparty/rhel8/postgresql-10:1-215 \
+sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215
+✅ 2. Push the image to your internal Docker registry
+bash
+Copy
+Edit
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215
+🚨 This is the step that makes the image available for your pod to pull from your internal registry.
+
+✅ 3. Delete and recreate the failing pod
+bash
+Copy
+Edit
+oc delete pod cdp-embedded-db-0 -n xyz
+Let OpenShift recreate the pod and try to pull the image again.
+
+🧪 (Optional) Verify the pushed tag is accessible
+Run this from any node with access to the registry:
+
+bash
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera/redhat8/postgresql-10/tags/list --insecure
+You should see something like:
+
+json
+Copy
+Edit
+{"name":"cdp-private/cloudera/redhat8/postgresql-10","tags":["1-215"]}
