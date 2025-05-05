@@ -44,3 +44,27 @@ json
 Copy
 Edit
 {"name":"cdp-private/cloudera/redhat8/postgresql-10","tags":["1-215"]}
+
+
+======================
+Commands to Fix:
+bash
+Copy
+Edit
+# Step 1: Tag your image correctly (fixing the path)
+docker tag 368243204766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera_thirdparty/rhel8/postgresql-10:1-215 \
+sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/rhel8/postgresql-10:1-215
+
+# Step 2: Push it to your internal Docker registry
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/rhel8/postgresql-10:1-215
+✅ Validate It’s Available in Registry
+bash
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thirdparty/rhel8/postgresql-10/tags/list --insecure
+Expected output:
+
+json
+Copy
+Edit
+{"name":"cdp-private/cloudera_thirdparty/rhel8/postgresql-10","tags":["1-215"]}
