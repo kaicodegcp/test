@@ -144,7 +144,32 @@ Let me know if the patch fails or if you want help increasing other limits like 
 
 
 
+============================
 
+storage-resource-quota.yaml
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: storage-resource-quota
+  namespace: xyz
+spec:
+  hard:
+    requests.storage: 100Gi
+Save that as storage-resource-quota.yaml.
+
+🚀 Apply It:
+bash
+Copy
+Edit
+oc apply -f storage-resource-quota.yaml
+📌 Verify:
+bash
+Copy
+Edit
+oc describe resourcequota storage-resource-quota -n xyz
 
 
 
