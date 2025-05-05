@@ -1,35 +1,6 @@
-Verify Image Tag
-SSH into the host where your Docker registry is running and run:
+# Retag image to match what your pod is trying to pull
+docker tag 368243204766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera_thirdparty/rhel8/postgresql-10:1-215 \
+sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215
 
-bash
-Copy
-Edit
-curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog --insecure
-Then check all available tags for this image:
-
-bash
-Copy
-Edit
-curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera/redhat8/postgresql-10/tags/list --insecure
-Look for 1-215. If it's missing, proceed to the next step.
-
-2. Load the Correct Image
-Go to the directory where you have the .tar.gz image files (you mentioned /docker2/1.5.4-h10/images) and run:
-
-bash
-Copy
-Edit
-gunzip postgresql-10_1-215.tar.gz
-docker load -i postgresql-10_1-215.tar
-docker tag <loaded-image-id> sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215
+# Push it to your custom Docker registry
 docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215
-Make sure TLS and htpasswd are working as expected for pushing to the registry.
-
-3. Restart the Failing Pod
-After pushing the image successfully:
-
-bash
-Copy
-Edit
-oc delete pod cdp-embedded-db-0 -n xyz
-The StatefulSet will recreate it and should now pull the image correctly.
