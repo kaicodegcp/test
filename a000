@@ -68,3 +68,47 @@ json
 Copy
 Edit
 {"name":"cdp-private/cloudera_thirdparty/rhel8/postgresql-10","tags":["1-215"]}
+
+
+
+----------------------
+Solution
+🔧 1. Edit the StorageClass ResourceQuota
+Run:
+
+bash
+Copy
+Edit
+oc edit resourcequota storage-resource-quota -n xyz
+If you're unsure of the quota name, run:
+
+bash
+Copy
+Edit
+oc get resourcequota -n xyz
+Then increase the requests.storage value under .spec.hard:
+
+yaml
+Copy
+Edit
+requests.storage: 100Gi
+Or higher, depending on expected usage.
+
+💾 Save and Exit
+If using vi: press Esc, type :wq, then press Enter.
+
+If using nano: press Ctrl+O, then Enter, then Ctrl+X.
+
+🔄 Retry Failed Pods
+After quota update, re-run the workflow or restart failed pods:
+
+bash
+Copy
+Edit
+oc delete pod -n xyz --all
+Or restart deployments:
+
+bash
+Copy
+Edit
+oc rollout restart deployment <deployment-name> -n xyz
