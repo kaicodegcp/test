@@ -112,3 +112,39 @@ bash
 Copy
 Edit
 oc rollout restart deployment <deployment-name> -n xyz
+
+
+
+=======================
+Run This Command:
+bash
+Copy
+Edit
+oc patch resourcequota compute-resources -n xyz \
+  --type='merge' \
+  -p '{"spec":{"hard":{"requests.storage":"100Gi"}}}'
+✅ This will add or update requests.storage in your existing quota without needing to open a YAML editor.
+
+📌 Verify
+Then confirm it worked:
+
+bash
+Copy
+Edit
+oc describe resourcequota compute-resources -n xyz
+Look under .spec.hard for:
+
+makefile
+Copy
+Edit
+requests.storage: 100Gi
+Let me know if the patch fails or if you want help increasing other limits like CPU or memory in the same way.
+
+
+
+
+
+
+
+
+
