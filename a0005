@@ -1,0 +1,7 @@
+rook-ceph-master.tar available under /docker2/1.5.4-h10/images. There are no other .tar files like:
+
+csi-cephfsplugin.tar.gz
+
+csi-rbdplugin.tar.gz
+
+csi-cephfsplugin-provisioner.tar.gz
