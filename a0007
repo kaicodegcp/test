@@ -1,0 +1,15 @@
+oc adm policy add-cluster-role-to-user cluster-admin eap_dev --rolebinding-name=eap-dev-storage-access
+Check if storageclass is Available:
+Verify if storageclass resources are available in the correct API group by running:
+
+bash
+Copy
+oc api-resources | grep storageclass
+This will show you whether the storageclass resource exists and its respective API group.
+
+Testing with oc get storageclass:
+After granting permissions, test if the eap_dev user can view the storage class:
+
+bash
+Copy
+oc get storageclass --as eap_dev
