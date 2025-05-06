@@ -1,0 +1,28 @@
+Single oc Command to Apply LimitRange
+bash
+Copy
+Edit
+oc apply -f - <<EOF
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: pvc-default-500gi
+  namespace: xyz
+spec:
+  limits:
+  - type: PersistentVolumeClaim
+    default:
+      storage: 500Gi
+    defaultRequest:
+      storage: 500Gi
+    max:
+      storage: 500Gi
+EOF
+✅ This does not require a file, and you can run it after namespace xyz is auto-created (e.g., during or just after your CDS install starts).
+
+🧪 Optional Validation
+bash
+Copy
+Edit
+oc get limitrange -n xyz
+oc describe limitrange pvc-default-500gi -n xyz
