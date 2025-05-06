@@ -1,0 +1,17 @@
+Option 1: Edit the Helm chart or YAML request
+Instead of allocating a 50Gi PVC, reduce the size in your Prometheus values.yaml or Helm command override:
+
+yaml
+Copy
+Edit
+server:
+  persistentVolume:
+    size: 30Gi   # instead of 50Gi
+Or during Helm install/upgrade:
+
+bash
+Copy
+Edit
+helm upgrade --install prometheus stable/prometheus \
+  --set server.persistentVolume.size=30Gi \
+  -n xyz
