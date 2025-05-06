@@ -43,3 +43,87 @@ oc apply -f limitrange.yaml -n xyz
 oc get storageclass sc-ontap-nas -o yaml
 
 oc get storageclass
+
+
+
+======================
+Option 1: Create a New StorageClass with Your Desired Default Size
+First, get the current StorageClass YAML:
+
+bash
+Copy
+Edit
+oc get sc sc-ontap-nas -o yaml > sc-ontap-nas.yaml
+Edit the YAML:
+
+Change the name to something like sc-ontap-nas-500gb
+
+Modify or add parameters like fsType, size, etc. (based on your Trident backend — verify in your NetApp documentation)
+
+Make sure metadata.annotations does not include storageclass.kubernetes.io/is-default-class: "true"
+
+Apply it:
+
+bash
+Copy
+Edit
+oc apply -f sc-ontap-nas-500gb.yaml
+Note: You cannot reuse the sc-ontap-nas name unless you delete the existing one.
+
+✅ Option 2: Use LimitRange to Enforce Default PVC Size (Recommended)
+Since patching the StorageClass is not allowed, this is the safest way to make your install request 300Gi or 500Gi PVCs by default.
+
+🔧 Sample LimitRange YAML
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: pvc-default-size
+  namespace: xyz
+spec:
+  limits:
+    - type: PersistentVolumeClaim
+      default:
+        storage: 300Gi
+      defaultRequest:
+        storage: 300Gi
+      max:
+        storage: 500Gi
+Apply it with:
+
+bash
+Copy
+Edit
+oc apply -f pvc-default-limits.yaml
+This sets default PVC size to 300Gi if none is specified in YAML or Helm.
+
+🧪 Validate
+After applying the LimitRange, create a PVC with no size specified:
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-default-pvc
+  namespace: xyz
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests: {}
+bash
+Copy
+Edit
+oc apply -f test-default-pvc.yaml
+oc describe pvc test-default-pvc -n xyz
+You should see:
+
+yaml
+Copy
+Edit
+Requests:
+  Storage: 300Gi
