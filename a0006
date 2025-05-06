@@ -1,0 +1,70 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc-ontap-nas-500gb
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  # Adjust this to match your storage system
+  storagePool: "500gb-pool"
+
+
+=============
+o create a new StorageClass with a 500GB default size for your Cloudera CDS install, follow these steps in OpenShift:
+
+Log into OpenShift Console:
+Ensure you're logged into your OpenShift UI with admin access.
+
+Navigate to StorageClasses:
+
+Go to Storage under the Administrator section in the OpenShift console.
+
+Click StorageClasses.
+
+Create a New StorageClass:
+
+Click Create StorageClass or create a new YAML file.
+
+YAML Configuration for New StorageClass:
+Here's a sample YAML file you can modify for your new StorageClass (sc-ontap-nas-500gb):
+
+yaml
+Copy
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc-ontap-nas-500gb
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  # Adjust this to match your storage system
+  storagePool: "500gb-pool"
+Adjust the parameters based on your specific storage backend (e.g., storagePool should reference a pool that supports 500GB volumes).
+
+Set the is-default-class annotation to "true" if you want this StorageClass to be the default.
+
+Apply the StorageClass:
+After creating the StorageClass, you can apply it using the OpenShift CLI (oc) or directly via the UI.
+
+Via CLI:
+Save the YAML configuration to a file (storageclass-500gb.yaml), then run the following command:
+
+bash
+Copy
+oc apply -f storageclass-500gb.yaml
+Via UI:
+If you prefer using the UI, navigate to the YAML tab in the Create StorageClass form and paste the YAML content into it, then click Save.
+
+Verify the StorageClass:
+Once created, verify the new StorageClass:
+
+bash
+Copy
+oc get storageclass
+This should list sc-ontap-nas-500gb as one of the available storage classes.
