@@ -1,0 +1,82 @@
+Verify Docker Image Availability in Registry
+Run this on a VM that can access your registry:
+
+sh
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog
+To check specific tags:
+
+sh
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/vault/tags/list
+🔧 Ensure vault:latest and vault-unseal-job:* images exist with proper tags.
+
+2. Validate Pull Secrets Are Set
+In namespace xyz-vault, ensure your pull secret is created:
+
+sh
+Copy
+Edit
+oc get secret -n xyz-vault cdp-private-installer-docker-pull-secret
+If missing, re-create with:
+
+sh
+Copy
+Edit
+oc create secret docker-registry cdp-private-installer-docker-pull-secret \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  -n xyz-vault
+3. Verify Rook-Ceph Operator Exists
+Check for the Rook pod:
+
+sh
+Copy
+Edit
+oc get pods -n rook-ceph | grep rook-ceph-operator
+If it’s missing:
+
+sh
+Copy
+Edit
+oc delete pod <old_rook_ceph_operator> -n rook-ceph
+# or redeploy rook-ceph using Helm/yaml
+4. Check PVC Binding Issues
+Inspect PVC status:
+
+sh
+Copy
+Edit
+oc get pvc -n xyz-vault
+Check if cdp-vault-storage and cdp-embedded-db-backend PVCs are bound. If not:
+
+Your StorageClass may not auto-provision.
+
+Check logs for CSI provisioner (trident, etc.)
+
+📁 Bonus: Save vault-0 Pod YAML for Reuse
+Run this to get its spec for future reuse:
+
+sh
+Copy
+Edit
+oc get pod vault-0 -n xyz-vault -o yaml > vault-0-backup.yaml
+You can later recreate the pod with:
+
+sh
+Copy
+Edit
+oc delete pod vault-0 -n xyz-vault
+oc apply -f vault-0-backup.yaml
+🧼 Final Clean-Up (Optional)
+If you're stuck in a partial state:
+
+sh
+Copy
+Edit
+oc delete pod vault-0 -n xyz-vault
+oc delete pvc -n xyz-vault --all
+oc delete secrets -n xyz-vault --all
