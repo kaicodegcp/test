@@ -15,3 +15,31 @@ Edit
 helm upgrade --install prometheus stable/prometheus \
   --set server.persistentVolume.size=30Gi \
   -n xyz
+
+
+==========
+oc patch storageclass sc-ontap-nas --type merge -p '{"parameters":{"size":"500Gi"}}'
+
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: storage-limit
+  namespace: xyz
+spec:
+  limits:
+  - type: PersistentVolumeClaim
+    max:
+      storage: 500Gi
+    default:
+      storage: 300Gi
+    defaultRequest:
+      storage: 300Gi
+
+oc apply -f limitrange.yaml
+
+oc create namespace xyz
+oc apply -f limitrange.yaml -n xyz
+
+oc get storageclass sc-ontap-nas -o yaml
+
+oc get storageclass
