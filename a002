@@ -1,0 +1,9 @@
+oc patch serviceaccount default -n xyz-vault \
+  -p '{"imagePullSecrets": [{"name": "cdp-private-installer-docker-pull-secret"}]}'
+oc delete pod vault-0 -n xyz-vault
+oc delete pod -n xyz-vault -l job-name | grep vault-unseal-job | awk '{print $1}' | xargs -I{} oc delete pod {} -n xyz-vault
+oc delete pods -n xyz-vault --selector=app.kubernetes.io/name=vault
+
+oc get pods -n xyz-vault -w
+
+oc describe pod vault-0 -n xyz-vault
