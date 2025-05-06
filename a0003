@@ -1,0 +1,53 @@
+Recommended Strategy (Cluster-Wide Control with Namespace Recreation)
+Since your namespace (e.g., xyz) is recreated often (by CDS installer or CI/CD), and you want to enforce a default PVC size globally, you have 2 robust options:
+
+✅ Option 1: Use a Cluster-Wide ValidatingAdmissionWebhook
+A custom Kubernetes webhook can:
+
+Intercept PVC creation
+
+Mutate PVCs without size to inject 500Gi
+
+🛠 Requires cluster-level setup and a small controller.
+
+✅ Benefit: Persistent and namespace-agnostic.
+
+✅ Option 2: Use a Watcher Script to Auto-Apply LimitRange
+Here’s a shell script that watches for the xyz namespace and auto-applies your 500Gi default:
+
+bash
+Copy
+Edit
+#!/bin/bash
+
+TARGET_NAMESPACE="xyz"
+LIMIT_RANGE_NAME="pvc-default-500gi"
+
+cat <<EOF > /tmp/$LIMIT_RANGE_NAME.yaml
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: $LIMIT_RANGE_NAME
+  namespace: $TARGET_NAMESPACE
+spec:
+  limits:
+  - type: PersistentVolumeClaim
+    default:
+      storage: 500Gi
+    defaultRequest:
+      storage: 500Gi
+    max:
+      storage: 500Gi
+EOF
+
+while true; do
+  if oc get namespace $TARGET_NAMESPACE >/dev/null 2>&1; then
+    if ! oc get limitrange $LIMIT_RANGE_NAME -n $TARGET_NAMESPACE >/dev/null 2>&1; then
+      echo "Namespace $TARGET_NAMESPACE found. Applying default PVC LimitRange..."
+      oc apply -f /tmp/$LIMIT_RANGE_NAME.yaml
+    fi
+  fi
+  sleep 10
+done
+Run it in the background on your admin node before you install CDS or trigger pipeline.
+
