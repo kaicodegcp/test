@@ -67,3 +67,32 @@ while read old_image; do
   docker push "$new_image"
 done < /tmp/ecr-to-delete.txt
 
+
+
+
+
+
+
+================================
+#!/bin/bash
+
+while read old_img; do
+  # Strip the ECR prefix from either start or middle
+  clean_path=$(echo "$old_img" | sed 's|.*36842304766.dkr.ecr.us-west-2.amazonaws.com/||')
+
+  # Split path and tag
+  image_path=$(echo "$clean_path" | cut -d':' -f1)
+  image_tag=$(echo "$clean_path" | cut -d':' -f2)
+
+  # Construct new tag
+  new_img="sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/${image_path}:${image_tag}"
+
+  echo "🔁 Retagging:"
+  echo "FROM: $old_img"
+  echo "  TO: $new_img"
+
+  docker tag "$old_img" "$new_img"
+  docker push "$new_img"
+
+done < /tmp/ecr-images.txt
+
