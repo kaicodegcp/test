@@ -16,3 +16,22 @@ for img in $(docker images --format "{{.Repository}}:{{.Tag}}"); do
   esac
 done
 
+Full Working Method (No Pipes in Loop)
+Step 1: Save all image names to a file
+bash
+Copy
+Edit
+docker images --format "{{.Repository}}:{{.Tag}}" > /tmp/all-docker-images.txt
+Step 2: Extract only ECR images
+bash
+Copy
+Edit
+grep '^36842304766.dkr.ecr.us-west-2.amazonaws.com/' /tmp/all-docker-images.txt > /tmp/ecr-to-delete.txt
+Step 3: Delete all ECR images using a while loop
+bash
+Copy
+Edit
+while read img; do
+  echo "🗑️ Removing: $img"
+  docker rmi -f "$img"
+done < /tmp/ecr-to-delete.txt
