@@ -126,3 +126,60 @@ Edit
 
 docker images --format '{{.Repository}}:{{.Tag}}' | grep '36842304766.dkr.ecr' > /tmp/ecr-images.txt
 
+=====
+docker images --format "{{.Repository}}:{{.Tag}}" | grep '36842304766.dkr.ecr' > /tmp/ecr-images.txt
+
+
+
+
+
+---------
+Step 2: Save Only ECR Images to a File
+Now run this command:
+
+bash
+Copy
+Edit
+docker images --format "{{.Repository}}:{{.Tag}}" | grep '36842304766.dkr.ecr.us-west-2.amazonaws.com' > /tmp/ecr-images.txt
+Then verify:
+
+bash
+Copy
+Edit
+cat /tmp/ecr-images.txt
+You should see ~26 lines of ECR images with full tags like:
+
+arduino
+Copy
+Edit
+36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-iam-api:1.5.4-h5-b24
+✅ Step 3: Final Script to Tag and Push to Your Registry
+Now run the following script to re-tag and push all images:
+
+bash
+Copy
+Edit
+#!/bin/bash
+
+while read image; do
+  short_name="${image#36842304766.dkr.ecr.us-west-2.amazonaws.com/}"
+  new_image="sd-wv58-kflz.nam.nsroot.net:5000/$short_name"
+
+  echo "🔄 Tagging: $image → $new_image"
+  docker tag "$image" "$new_image"
+
+  echo "📤 Pushing: $new_image"
+  docker push "$new_image"
+
+  echo "✅ Done: $new_image"
+  echo "-----------------------------"
+done < /tmp/ecr-images.txt
+You can copy and run this inline, or save as a script:
+
+bash
+Copy
+Edit
+nano retag-and-push.sh
+# Paste the script above
+chmod +x retag-and-push.sh
+./retag-and-push.sh
