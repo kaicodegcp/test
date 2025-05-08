@@ -60,3 +60,20 @@ while read line; do
   docker tag "${image}:${tag}" "${new_image}:${tag}"
 done < ecr1.txt
 
+
+
+while read repo tag; do
+  if [[ "$repo" == 36842304766.dkr.ecr.us-west-2.amazonaws.com* ]]; then
+    # Extract everything after the ECR domain
+    subpath="${repo#36842304766.dkr.ecr.us-west-2.amazonaws.com/}"
+    
+    # Build new image name
+    new_repo="sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/${subpath}"
+    
+    # Tag the image
+    docker tag "${repo}:${tag}" "${new_repo}:${tag}"
+    
+    echo "Re-tagged: ${repo}:${tag} -> ${new_repo}:${tag}"
+  fi
+done < <(docker images --format '{{.Repository}} {{.Tag}}')
+
