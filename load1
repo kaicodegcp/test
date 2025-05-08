@@ -1,0 +1,7 @@
+# Step 1: Load Images
+echo === Step 1: Loading Docker Images ===
+IMAGE_DIR=/docker2/1.5.4-h10/images
+for tar in $IMAGE_DIR/*.tar.gz; do
+  echo Loading $tar ...
+  docker load -i $tar
+done
