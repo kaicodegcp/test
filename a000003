@@ -16,3 +16,32 @@ Edit
 while read repo tag; do
   docker rmi "${repo}:${tag}"
 done < /tmp/ecr-images.txt
+
+
+Step 1: Extract full matching image names into a file
+bash
+Copy
+Edit
+docker images | awk '$1 ~ /^36842304766\.dkr\.ecr\.us-west-2\.amazonaws\.com/ {print $1 ":" $2}' > /tmp/ecr-images.txt
+✅ Step 2: Confirm captured images
+bash
+Copy
+Edit
+cat /tmp/ecr-images.txt
+You should see full repository:tag lines like:
+
+arduino
+Copy
+Edit
+36842304766.dkr.ecr.us-west-2.amazonaws.com/your-image-name:tag
+✅ Step 3: Remove the images
+bash
+Copy
+Edit
+xargs -r docker rmi < /tmp/ecr-images.txt
+Or force delete (if in use):
+
+bash
+Copy
+Edit
+xargs -r docker rmi -f < /tmp/ecr-images.txt
