@@ -9,3 +9,6 @@ oc edit resourcequota storage-quota -n xyz
 oc patch resourcequota storage-quota -n xyz \
   --type merge \
   -p '{"spec":{"hard":{"sc-ontap-nas.storageclass.storage.k8s.io/requests.storage":"100Gi"}}}'
+
+oc describe pod cdp-release-thunderhead-iam-api-5b45b9b5b4-9n5v9 -n xyz | grep -i image
+
