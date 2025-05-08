@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Input file containing wrong image tags
+INPUT_FILE="wrong-tag.txt"
+
+# Source and target registry prefixes
+SRC_REGISTRY="36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private"
+DEST_REGISTRY="sd-wv58-kflz.nam.nsroot.net:5000/cdp-private"
+
+# Loop through each image name in the file
+while read -r line; do
+  IMG_NAME="$line"
+  
+  echo "Processing $IMG_NAME..."
+
+  # Re-tag the image
+  docker tag "$DEST_REGISTRY/$IMG_NAME" "$DEST_REGISTRY/$IMG_NAME"
+
+  # Push the newly tagged image
+  docker push "$DEST_REGISTRY/$IMG_NAME"
+done < "$INPUT_FILE"
