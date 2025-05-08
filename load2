@@ -1,0 +1,21 @@
+#!/bin/bash
+cd /docker2/1.5.4-h10/images
+
+echo "Finding duplicate folders in $(pwd)"
+
+# Step 1: Generate checksums for each folder
+find . -mindepth 1 -maxdepth 1 -type d | while read dir; do
+  hash=$(find "$dir" -type f -exec md5sum {} + | sort | md5sum | awk '{print $1}')
+  echo "$hash $dir"
+done | sort > folder_hashes.txt
+
+# Step 2: Find duplicates
+cut -d' ' -f1 folder_hashes.txt | uniq -d > dup_hashes.txt
+
+# Step 3: Remove duplicate folders (keep first occurrence)
+while read hash; do
+  grep "$hash" folder_hashes.txt | tail -n +2 | awk '{print $2}' | while read dup_dir; do
+    echo "Removing duplicate folder: $dup_dir"
+    rm -rf "$dup_dir"
+  done
+done < dup_hashes.txt
