@@ -12,3 +12,30 @@ oc patch resourcequota storage-quota -n xyz \
 
 oc describe pod cdp-release-thunderhead-iam-api-5b45b9b5b4-9n5v9 -n xyz | grep -i image
 
+
+# Liftie
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera/liftie/tags/list
+
+# DPS Gateway
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera/dps-gateway/tags/list
+
+# Thunderhead Consoles
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/cdp-private-authentication-console/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/cdp-private-commonconsole/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/cdp-private-environments-console/tags/list
+
+# Thunderhead APIs
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/compute-api/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/consoleauthenticationcdp/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/de-api/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/environment-api/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/environments2-api/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/iam-api/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/iam-console/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/kerberosmgmt-api/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/ml-api/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/sdk2-api/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/servicediscovery-api/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/servicediscoverysimple/tags/list
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/usermanagement-private/tags/list
+
