@@ -122,3 +122,7 @@ bash
 Copy
 Edit
 ./retag-and-push.sh
+
+
+docker images --format '{{.Repository}}:{{.Tag}}' | grep '36842304766.dkr.ecr' > /tmp/ecr-images.txt
+
