@@ -77,3 +77,27 @@ while read repo tag; do
   fi
 done < <(docker images --format '{{.Repository}} {{.Tag}}')
 
+
+
+
+
+
+
+
+
+while read full_image tag; do
+  # Only process lines that contain the ECR domain inside the full image name
+  if [[ "$full_image" == *"36842304766.dkr.ecr.us-west-2.amazonaws.com"* ]]; then
+    # Replace ECR part with your private repo prefix
+    new_image=$(echo "$full_image" | sed 's|36842304766\.dkr\.ecr\.us-west-2\.amazonaws\.com|cdp-private|')
+    
+    # Tag the image
+    docker tag "${full_image}:${tag}" "sd-wv58-kflz.nam.nsroot.net:5000/${new_image}:${tag}"
+
+    # Push the newly tagged image
+    docker push "sd-wv58-kflz.nam.nsroot.net:5000/${new_image}:${tag}"
+
+    echo "✔ Tagged and pushed: sd-wv58-kflz.nam.nsroot.net:5000/${new_image}:${tag}"
+  fi
+done < ecr1.txt
+
