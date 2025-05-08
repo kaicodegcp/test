@@ -1,0 +1,9 @@
+docker images --format "{{.Repository}}:{{.Tag}}" | grep 36842304766.dkr.ecr
+
+for img in $(docker images --format "{{.Repository}}:{{.Tag}}"); do
+  if [[ "$img" == 36842304766.dkr.ecr.us-west-2.amazonaws.com/* ]]; then
+    echo "Removing image: $img"
+    docker rmi -f "$img"
+  fi
+done
+
