@@ -1,0 +1,18 @@
+Step 1: Save matching images to a text file
+bash
+Copy
+Edit
+docker images --format '{{.Repository}} {{.Tag}}' | grep '^36842304766.dkr.ecr.us-west-2.amazonaws.com' > /tmp/ecr-images.txt
+You can verify with:
+
+bash
+Copy
+Edit
+cat /tmp/ecr-images.txt
+✅ Step 2: Remove those images using the file
+bash
+Copy
+Edit
+while read repo tag; do
+  docker rmi "${repo}:${tag}"
+done < /tmp/ecr-images.txt
