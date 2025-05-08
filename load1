@@ -5,3 +5,23 @@ for tar in $IMAGE_DIR/*.tar.gz; do
   echo Loading $tar ...
   docker load -i $tar
 done
+
+
+#!/bin/bash
+
+echo === Step 3: Retag and Push from myfile.txt ===
+
+REGISTRY=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private
+SRC_PREFIX=36842304766.dkr.ecr.us-west-2.amazonaws.com
+
+while read line; do
+  SRC_IMAGE=$line
+  RELATIVE_PATH=${SRC_IMAGE#${SRC_PREFIX}/}
+  DEST_IMAGE=${REGISTRY}/${RELATIVE_PATH}
+
+  echo Retagging $SRC_IMAGE to $DEST_IMAGE
+  docker tag $SRC_IMAGE $DEST_IMAGE
+
+  echo Pushing $DEST_IMAGE
+  docker push $DEST_IMAGE
+done < myfile.txt
