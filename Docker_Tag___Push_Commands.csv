@@ -1,0 +1,37 @@
+Commands
+docker tag cloudera/liftie:1.25.10-b11 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/liftie:1.25.10-b11
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/liftie:1.25.10-b11
+docker tag cloudera/dps-gateway:1.0.0 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/dps-gateway:1.0.0
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/dps-gateway:1.0.0
+docker tag cloudera_thunderhead/cdp-private-authentication-console:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/cdp-private-authentication-console:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/cdp-private-authentication-console:3.0.7
+docker tag cloudera_thunderhead/cdp-private-commonconsole:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/cdp-private-commonconsole:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/cdp-private-commonconsole:3.0.7
+docker tag cloudera_thunderhead/cdp-private-environments-console:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/cdp-private-environments-console:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/cdp-private-environments-console:3.0.7
+docker tag cloudera_thunderhead/compute-api:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/compute-api:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/compute-api:3.0.7
+docker tag cloudera_thunderhead/consoleauthenticationcdp:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/consoleauthenticationcdp:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/consoleauthenticationcdp:3.0.7
+docker tag cloudera_thunderhead/de-api:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/de-api:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/de-api:3.0.7
+docker tag cloudera_thunderhead/environment-api:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/environment-api:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/environment-api:3.0.7
+docker tag cloudera_thunderhead/environments2-api:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/environments2-api:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/environments2-api:3.0.7
+docker tag cloudera_thunderhead/iam-api:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/iam-api:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/iam-api:3.0.7
+docker tag cloudera_thunderhead/iam-console:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/iam-console:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/iam-console:3.0.7
+docker tag cloudera_thunderhead/kerberosmgmt-api:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/kerberosmgmt-api:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/kerberosmgmt-api:3.0.7
+docker tag cloudera_thunderhead/ml-api:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/ml-api:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/ml-api:3.0.7
+docker tag cloudera_thunderhead/sdk2-api:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/sdk2-api:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/sdk2-api:3.0.7
+docker tag cloudera_thunderhead/servicediscovery-api:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/servicediscovery-api:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/servicediscovery-api:3.0.7
+docker tag cloudera_thunderhead/servicediscoverysimple:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/servicediscoverysimple:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/servicediscoverysimple:3.0.7
+docker tag cloudera_thunderhead/usermanagement-private:3.0.7 sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/usermanagement-private:3.0.7
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thunderhead/usermanagement-private:3.0.7
