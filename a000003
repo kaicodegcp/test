@@ -110,3 +110,20 @@ cat ecr1.txt | while read img tag; do
   docker push "$new_img:$tag"
   echo "✅ Pushed $new_img:$tag"
 done
+
+
+
+
+cat ecr1.txt | while read full_img tag; do
+  # Replace the ECR part in the middle with "cdp-private"
+  new_img=$(echo "$full_img" | sed 's|36842304766\.dkr\.ecr\.us-west-2\.amazonaws\.com|cdp-private|')
+  
+  # Re-tag and push
+  docker tag "${full_img}:${tag}" "${new_img}:${tag}"
+  docker push "${new_img}:${tag}"
+  
+  echo "✅ Done: $full_img --> $new_img ($tag)"
+done
+
+docker images | grep sd-wv58-kflz.nam.nsroot.net:5000/cdp-private
+
