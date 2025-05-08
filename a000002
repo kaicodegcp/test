@@ -51,3 +51,19 @@ while read image; do
   echo "📤 Pushing: $new_image"
   docker push "$new_image"
 done < /tmp/ecr-to-delete.txt
+
+
+
+
+while read old_image; do
+  # Remove embedded ECR path after local registry
+  new_image=$(echo "$old_image" | sed 's|/36842304766.dkr.ecr.us-west-2.amazonaws.com||')
+
+  echo "🔄 Retagging:"
+  echo "FROM: $old_image"
+  echo "  TO: $new_image"
+
+  docker tag "$old_image" "$new_image"
+  docker push "$new_image"
+done < /tmp/ecr-to-delete.txt
+
