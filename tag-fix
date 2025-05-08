@@ -1,0 +1,49 @@
+fix_and_push_images.sh
+bash
+Copy
+Edit
+#!/bin/bash
+
+# Configuration
+SRC_REG_PREFIX="sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com"
+DST_REG_PREFIX="sd-wv58-kflz.nam.nsroot.net:5000/cdp-private"
+
+# Source file
+IMAGE_LIST="wrong-tag.txt"
+
+# Process each image line from docker images output
+grep "$SRC_REG_PREFIX" "$IMAGE_LIST" | while read -r line; do
+    # Extract full source image with tag
+    IMAGE_REPO=$(echo "$line" | awk '{print $1}')
+    IMAGE_TAG=$(echo "$line" | awk '{print $2}')
+
+    # Extract image name suffix after 'cdp-private/'
+    NAME_PATH=$(echo "$IMAGE_REPO" | sed -E "s|$SRC_REG_PREFIX/||")
+
+    # Compose source and target full image names
+    SRC_IMAGE="$IMAGE_REPO:$IMAGE_TAG"
+    DST_IMAGE="$DST_REG_PREFIX/$NAME_PATH:$IMAGE_TAG"
+
+    echo ">>> Tagging: $SRC_IMAGE  -->  $DST_IMAGE"
+    docker tag "$SRC_IMAGE" "$DST_IMAGE"
+
+    echo ">>> Pushing: $DST_IMAGE"
+    docker push "$DST_IMAGE"
+
+    echo "---------------------------------------------"
+done
+✅ How to Use:
+Save the script as fix_and_push_images.sh
+
+Make it executable:
+
+bash
+Copy
+Edit
+chmod +x fix_and_push_images.sh
+Run it from the directory where wrong-tag.txt exists:
+
+bash
+Copy
+Edit
+./fix_and_push_images.sh
