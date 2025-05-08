@@ -45,3 +45,18 @@ bash
 Copy
 Edit
 xargs -r docker rmi -f < /tmp/ecr-images.txt
+
+
+
+while read line; do
+  # Extract original image and tag
+  image=$(echo "$line" | awk '{print $1}')
+  tag=$(echo "$line" | awk '{print $2}')
+
+  # Strip ECR prefix and re-tag with your custom registry
+  new_image=$(echo "$image" | sed 's|36842304766\.dkr\.ecr\.us-west-2\.amazonaws\.com|sd-wv58-kflz.nam.nsroot.net:5000|')
+  
+  # Re-tag the image
+  docker tag "${image}:${tag}" "${new_image}:${tag}"
+done < ecr1.txt
+
