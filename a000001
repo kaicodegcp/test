@@ -39,3 +39,36 @@ curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/clou
 curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/servicediscoverysimple/tags/list
 curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thunderhead/usermanagement-private/tags/list
 
+
+Step-by-Step: Search → Save → Loop → Re-tag
+🔍 Step 1: Capture All ECR Image Names
+Run this to save the list into a file:
+
+bash
+Copy
+Edit
+docker images --format '{{.Repository}}:{{.Tag}}' | grep '36842304766.dkr.ecr' > ecr-images.txt
+This creates a file like:
+
+python-repl
+Copy
+Edit
+36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-iam-api:1.5.4-h5-b24
+...
+🔁 Step 2: Loop Through File and Tag Images
+Run the following shell script:
+
+bash
+Copy
+Edit
+while read image; do
+  # Strip the AWS prefix and keep only the path + tag
+  short_name=$(echo "$image" | sed 's|36842304766.dkr.ecr.us-west-2.amazonaws.com/||')
+  
+  # Build destination tag
+  new_image="sd-wv58-kflz.nam.nsroot.net:5000/$short_name"
+  
+  echo "Tagging: $image --> $new_image"
+  docker tag "$image" "$new_image"
+done < ecr-images.txt
+
