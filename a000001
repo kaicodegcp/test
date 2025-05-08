@@ -72,3 +72,53 @@ while read image; do
   docker tag "$image" "$new_image"
 done < ecr-images.txt
 
+
+
+
+=============
+Full Bash Script (Tag + Push All ECR Images)
+bash
+Copy
+Edit
+#!/bin/bash
+
+# Step 1: Capture all AWS ECR images into a file
+docker images --format '{{.Repository}}:{{.Tag}}' | grep '36842304766.dkr.ecr' > ecr-images.txt
+
+echo "Saved image list to ecr-images.txt"
+echo "Starting tag and push process..."
+
+# Step 2: Loop through each image entry in the file
+while read image; do
+  # Strip the registry prefix and keep repo:tag
+  short_name=$(echo "$image" | sed 's|36842304766.dkr.ecr.us-west-2.amazonaws.com/||')
+  
+  # Construct the new image path
+  new_image="sd-wv58-kflz.nam.nsroot.net:5000/$short_name"
+
+  echo "==> Tagging: $image"
+  docker tag "$image" "$new_image"
+
+  echo "==> Pushing: $new_image"
+  docker push "$new_image"
+
+  echo "✔ Done: $new_image"
+  echo "--------------------------------------------"
+done < ecr-images.txt
+
+echo "✅ All images re-tagged and pushed successfully!"
+📌 How to Run This
+Save the above script as retag-and-push.sh
+
+Make it executable:
+
+bash
+Copy
+Edit
+chmod +x retag-and-push.sh
+Run it:
+
+bash
+Copy
+Edit
+./retag-and-push.sh
