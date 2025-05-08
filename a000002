@@ -101,3 +101,15 @@ done < /tmp/ecr-images.txt
 grep '36842304766.dkr.ecr' /tmp/ecr2.txt | sed 's|sd-wv58-kflz.nam.nsroot.net:5000/||' | sort -u > /tmp/clean-ecr.txt
 
 
+
+#!/bin/bash
+
+docker images --format "{{.Repository}}:{{.Tag}}" > /tmp/image-list.txt
+
+while IFS= read -r img; do
+  if [[ "$img" == *36842304766.dkr.ecr.us-west-2.amazonaws.com* ]]; then
+    echo "Removing image: $img"
+    docker rmi -f "$img"
+  fi
+done < /tmp/image-list.txt
+
