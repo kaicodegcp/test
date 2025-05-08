@@ -167,4 +167,13 @@ sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-iam-console:1.
 
 docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-iam-console:1.5.4-h5-b24
 
+========
+# TAG from existing full local image
+docker tag \
+sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-iam-console:1.5.4-h5-b24 \
+sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-iam-console:1.5.4-h5-b24
+
+# PUSH to local repo
+docker push \
+sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-iam-console:1.5.4-h5-b24
 
