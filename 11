@@ -1,0 +1,18 @@
+while read -r line; do
+    IMAGE_REPO=$(echo "$line" | awk '{print $1}')
+    IMAGE_TAG=$(echo "$line" | awk '{print $2}')
+
+    # Only process images that match the source prefix
+    if [[ "$IMAGE_REPO" == "$SRC_REG_PREFIX"* ]]; then
+        NAME_PATH=$(echo "$IMAGE_REPO" | sed -E "s|$SRC_REG_PREFIX/||")
+        SRC_IMAGE="$IMAGE_REPO:$IMAGE_TAG"
+        DST_IMAGE="$DST_REG_PREFIX/$NAME_PATH:$IMAGE_TAG"
+
+        echo ">>> Tagging: $SRC_IMAGE  -->  $DST_IMAGE"
+        docker tag "$SRC_IMAGE" "$DST_IMAGE"
+
+        echo ">>> Pushing: $DST_IMAGE"
+        docker push "$DST_IMAGE"
+        echo "---------------------------------------------"
+    fi
+done < "$IMAGE_LIST"
