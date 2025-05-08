@@ -1,0 +1,41 @@
+Fix Steps (based on Cloudera IAM API pattern):
+Check if Cloudera Management Console login has expired:
+
+Re-authenticate using the UI or CLI.
+
+If you're using an automation script, make sure you call the login API first.
+
+Get a fresh access token or session:
+
+Example login via API:
+
+bash
+Copy
+Edit
+curl -X POST https://<CM-HOST>/api/v1/authenticate/login \
+     -H "Content-Type: application/json" \
+     -d '{"username": "admin", "password": "admin-password"}'
+This should return a token like:
+
+json
+Copy
+Edit
+{
+  "token": "eyJhbGciOiJIUzI1NiIs..."
+}
+Pass the token with your request:
+
+bash
+Copy
+Edit
+curl -X POST https://console-xyz.apps.mlabc-citqtdc03d.ecs.dyn.nsroot.net/api/v1/iam/createMachineUser \
+     -H "Authorization: Bearer <your-token-here>" \
+     -H "Content-Type: application/json" \
+     -d '{"machineUserName": "my-user"}'
+Optional - Use Cloudera CLI (if supported):
+If this is an internal Citigroup Cloudera deployment, use:
+
+bash
+Copy
+Edit
+cdp login --profile <profile-name>
