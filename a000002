@@ -7,3 +7,12 @@ for img in $(docker images --format "{{.Repository}}:{{.Tag}}"); do
   fi
 done
 
+for img in $(docker images --format "{{.Repository}}:{{.Tag}}"); do
+  case "$img" in
+    36842304766.dkr.ecr.us-west-2.amazonaws.com/*)
+      echo "🗑️ Removing image: $img"
+      docker rmi -f "$img"
+      ;;
+  esac
+done
+
