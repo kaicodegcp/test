@@ -113,3 +113,8 @@ while IFS= read -r img; do
   fi
 done < /tmp/image-list.txt
 
+
+
+-----------
+docker images --format "{{.Repository}}:{{.Tag}}" | grep '^36842304766.dkr.ecr.us-west-2.amazonaws.com' | xargs -r docker rmi
+
