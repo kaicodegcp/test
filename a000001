@@ -1,0 +1,3 @@
+oc create serviceaccount cdp-release-monitoring-pvcservice -n xyz
+oc create serviceaccount cdp-release-prometheus-server -n xyz
+oc create serviceaccount dps-admin-usernameadmin-private -n xyz
