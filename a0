@@ -46,3 +46,38 @@ bash
 Copy
 Edit
 Image:  sd-wv58-kflz.nam.nsroot.net:5000/rook/ceph:master
+
+
+
+
+----------
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-iam-console sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-iam-console
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-iam-console
+
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-cdp-private-environments-console sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-cdp-private-environments-console
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-cdp-private-environments-console
+
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-resource-management-console sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-resource-management-console
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-resource-management-console
+
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-cdp-private-commonconsole sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-cdp-private-commonconsole
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-cdp-private-commonconsole
+
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-cdp-private-authentication-console sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-cdp-private-authentication-console
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-cdp-private-authentication-console
+
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-mlopsgovernance sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-mlopsgovernance
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-mlopsgovernance
+
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-configtemplate sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-configtemplate
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-configtemplate
+
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-usermanagement-private sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-usermanagement-private
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-usermanagement-private
+
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-environment sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-environment
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-environment
+
+docker tag sd-wv58-kflz.nam.nsroot.net:5000/36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/cloudera/thunderhead-compute-api sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-compute-api
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/thunderhead-compute-api
+
