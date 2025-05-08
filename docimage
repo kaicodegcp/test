@@ -1,0 +1,31 @@
+Step-by-step Commands:
+bash
+Copy
+Edit
+# Set your image name (replace if needed)
+IMG_NAME=cloudera/liftie:1.25.10-b11
+
+# Retag the image
+docker tag 36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/${IMG_NAME} \
+  sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/${IMG_NAME}
+
+# Push to your registry
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/${IMG_NAME}
+Do the same for the second error:
+
+bash
+Copy
+Edit
+# Fluent Bit Image
+IMG_NAME=cloudera_thirdparty/fluent-bit:3.0.7
+
+docker tag 36842304766.dkr.ecr.us-west-2.amazonaws.com/cdp-private/${IMG_NAME} \
+  sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/${IMG_NAME}
+
+docker push sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/${IMG_NAME}
+🧪 To verify:
+bash
+Copy
+Edit
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera/liftie/tags/list --insecure
+curl -u admin:admin https://sd-wv58-kflz.nam.nsroot.net:5000/v2/cdp-private/cloudera_thirdparty/fluent-bit/tags/list --insecure
