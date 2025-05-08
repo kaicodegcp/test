@@ -1,3 +1,8 @@
 oc create serviceaccount cdp-release-monitoring-pvcservice -n xyz
 oc create serviceaccount cdp-release-prometheus-server -n xyz
 oc create serviceaccount dps-admin-usernameadmin-private -n xyz
+
+
+oc patch resourcequota storage-quota -n xyz \
+  --type merge \
+  -p '{"spec":{"hard":{"sc-ontap-nas.storageclass.storage.k8s.io/requests.storage":"100Gi"}}}'
