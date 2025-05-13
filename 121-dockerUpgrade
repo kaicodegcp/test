@@ -1,0 +1,40 @@
+Navigate to your RPM directory
+bash
+Copy
+Edit
+cd /docker2
+2. Stop Docker service (optional but safe)
+bash
+Copy
+Edit
+systemctl stop docker
+3. Install the Docker RPMs
+Run the command below to install all version 28 RPMs:
+
+bash
+Copy
+Edit
+rpm -Uvh docker-ce-28.1.1-1.el8.x86_64.rpm docker-ce-cli-28.1.1-1.el8.x86_64.rpm docker-compose-plugin-2.26.1-1.el8.x86_64.rpm docker-buildx-plugin-0.14.1-1.el8.x86_64.rpm containerd.io-1.6.33-3.1.el8.x86_64.rpm
+-Uvh means: Upgrade (or install if not present), show progress and print headers.
+
+4. Start Docker service again
+bash
+Copy
+Edit
+systemctl start docker
+5. Enable Docker to start on boot (if not already)
+bash
+Copy
+Edit
+systemctl enable docker
+6. Confirm Docker is upgraded
+bash
+Copy
+Edit
+docker --version
+You should now see:
+
+bash
+Copy
+Edit
+Docker version 28.1.1, build ...
