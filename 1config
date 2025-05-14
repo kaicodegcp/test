@@ -1,0 +1,4 @@
+oc adm policy add-cluster-role-to-user cluster-admin eap_dev
+oc create namespace cdp
+oc create namespace cdp
+oc adm policy add-role-to-user admin eap_dev -n cdp
