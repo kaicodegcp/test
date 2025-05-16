@@ -89,3 +89,43 @@ bash
 Copy
 Edit
 oc get pvc -n cdp
+
+
+
+Fix: Delete and Recreate the StatefulSet
+Since volumeClaimTemplates is immutable, do this:
+
+bash
+Copy
+Edit
+oc delete statefulset vault -n cdp
+oc delete pvc vault-storage-vault-0 -n cdp
+oc apply -f vault-manual.yaml
+🔁 This recreates the StatefulSet and PVC using the new sc-ontap-nas storage class.
+
+🟢 2. Docker Credentials – Needed?
+Since your image was already used successfully in the first attempt (vault-0 pulled image earlier), Docker credentials are already working.
+
+✅ No need to patch anything further for image pull if:
+
+bash
+Copy
+Edit
+vault pod shows image: sd-wv58-kflz.nam.nsroot.net:5000/...
+If ever needed in another project, you can create the pull secret like:
+
+bash
+Copy
+Edit
+oc create secret docker-registry regcred \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@example.com \
+  -n cdp
+And attach it to the service account:
+
+bash
+Copy
+Edit
+oc patch serviceaccount vault-sa -n cdp -p '{"imagePullSecrets": [{"name": "regcred"}]}'
