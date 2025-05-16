@@ -134,3 +134,72 @@ oc patch serviceaccount vault-sa -n cdp -p '{"imagePullSecrets": [{"name": "regc
 
 curl -v https://sd-wv58-kflz.nam.nsroot.net:5000/v2/ --cacert /etc/pki/ca-trust/source/anchors/domain.crt
 
+
+
+
+
+Fix: Patch the ImagePullSecret Correctly
+You already created a Docker registry secret named regcred:
+
+bash
+Copy
+Edit
+oc create secret docker-registry regcred \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@example.com \
+  -n cdp
+You also patched the service account:
+
+bash
+Copy
+Edit
+oc patch serviceaccount vault-sa -n cdp -p '{"imagePullSecrets": [{"name": "regcred"}]}'
+Let’s verify both:
+
+🔍 Step 1: Verify the Secret Is Attached
+bash
+Copy
+Edit
+oc get serviceaccount vault-sa -n cdp -o yaml
+You should see:
+
+yaml
+Copy
+Edit
+imagePullSecrets:
+- name: regcred
+🔍 Step 2: Verify Secret Format
+Run:
+
+bash
+Copy
+Edit
+oc get secret regcred -n cdp -o yaml
+Confirm:
+
+type: kubernetes.io/dockerconfigjson
+
+data:.dockerconfigjson exists
+
+If the format is incorrect, recreate it using:
+
+bash
+Copy
+Edit
+oc delete secret regcred -n cdp
+
+oc create secret docker-registry regcred \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@example.com \
+  -n cdp
+Then restart the pod:
+
+bash
+Copy
+Edit
+oc delete pod vault-0 -n cdp
+
