@@ -1,0 +1,91 @@
+Manual vault-0 YAML (cdp namespace)
+Save this as vault-manual.yaml:
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cdp
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+  namespace: cdp
+spec:
+  clusterIP: None
+  selector:
+    app: vault
+  ports:
+    - port: 8200
+      targetPort: 8200
+      name: http
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault-sa
+  namespace: cdp
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vault
+  namespace: cdp
+spec:
+  serviceName: vault
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault
+  template:
+    metadata:
+      labels:
+        app: vault
+    spec:
+      serviceAccountName: vault-sa
+      containers:
+        - name: vault
+          image: sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8200
+          volumeMounts:
+            - name: vault-storage
+              mountPath: /vault/file
+  volumeClaimTemplates:
+    - metadata:
+        name: vault-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: rook-ceph-block
+✅ How to Deploy Vault Manually
+Apply the YAML:
+
+bash
+Copy
+Edit
+oc apply -f vault-manual.yaml
+Watch Vault Pod:
+
+bash
+Copy
+Edit
+oc get pods -n cdp -w
+Check Logs:
+
+bash
+Copy
+Edit
+oc logs -f vault-0 -n cdp
+Check PVC Status:
+
+bash
+Copy
+Edit
+oc get pvc -n cdp
