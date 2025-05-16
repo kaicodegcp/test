@@ -203,3 +203,30 @@ Copy
 Edit
 oc delete pod vault-0 -n cdp
 
+
+
+
+========
+Action Required on newcluster Nodes
+On each OpenShift worker node in newcluster, run the following:
+
+bash
+Copy
+Edit
+cp /etc/pki/ca-trust/source/anchors/domain.crt /etc/pki/ca-trust/source/anchors/
+update-ca-trust extract
+systemctl restart crio     # Or reboot if preferred
+Repeat on each node, especially where pods are being scheduled (like the one for vault-0).
+
+✅ Then Restart Vault Pod
+bash
+Copy
+Edit
+oc delete pod vault-0 -n cdp
+Monitor:
+
+bash
+Copy
+Edit
+oc get pods -n cdp -w
+
