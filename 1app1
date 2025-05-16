@@ -129,3 +129,8 @@ bash
 Copy
 Edit
 oc patch serviceaccount vault-sa -n cdp -p '{"imagePullSecrets": [{"name": "regcred"}]}'
+
+
+
+curl -v https://sd-wv58-kflz.nam.nsroot.net:5000/v2/ --cacert /etc/pki/ca-trust/source/anchors/domain.crt
+
