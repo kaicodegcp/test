@@ -1,0 +1,81 @@
+Step-by-Step to Audit Working vault-0 Setup in Namespace xyz
+1️⃣ Get All Resources in xyz Namespace
+bash
+Copy
+Edit
+oc get all -n xyz
+2️⃣ Describe the vault StatefulSet
+bash
+Copy
+Edit
+oc describe statefulset vault -n xyz
+3️⃣ Export the StatefulSet YAML
+bash
+Copy
+Edit
+oc get statefulset vault -n xyz -o yaml > vault-statefulset.yaml
+4️⃣ Get PVCs Used by Vault
+bash
+Copy
+Edit
+oc get pvc -n xyz
+Then describe the one used by vault-0 (e.g., vault-storage):
+
+bash
+Copy
+Edit
+oc describe pvc vault-storage -n xyz
+5️⃣ Identify PersistentVolume Linked to PVC
+bash
+Copy
+Edit
+oc get pv | grep vault-storage
+Then describe it:
+
+bash
+Copy
+Edit
+oc describe pv <pv-name>
+6️⃣ Get All StorageClasses (Find the One Used by Vault)
+bash
+Copy
+Edit
+oc get storageclass
+oc describe storageclass <rook-ceph-sc-name>
+Look for:
+
+provisioner: rook-ceph.rbd.csi.ceph.com
+
+volumeBindingMode: Immediate
+
+7️⃣ List All Rook-Ceph Pods
+bash
+Copy
+Edit
+oc get pods -n rook-ceph
+8️⃣ Get Rook-Ceph Operator Logs
+bash
+Copy
+Edit
+oc logs -n rook-ceph deploy/rook-ceph-operator
+9️⃣ Export the StorageClass YAML Used by Vault
+bash
+Copy
+Edit
+oc get storageclass <rook-sc-name> -o yaml > rook-sc.yaml
+🔟 Get Vault Image Used
+bash
+Copy
+Edit
+oc get pod vault-0 -n xyz -o jsonpath='{.spec.containers[0].image}'
+🧾 Bonus: Export All YAMLs from Working Namespace
+bash
+Copy
+Edit
+oc get all -n xyz -o yaml > xyz-all.yaml
+And rook-ceph (if you want full backup):
+
+bash
+Copy
+Edit
+oc get all -n rook-ceph -o yaml > rook-all.yaml
