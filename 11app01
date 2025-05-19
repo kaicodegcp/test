@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vault
+  namespace: cdp
+spec:
+  serviceName: "vault"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault
+  template:
+    metadata:
+      labels:
+        app: vault
+    spec:
+      serviceAccountName: vault-sa
+      containers:
+      - name: vault
+        image: sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+        ports:
+        - containerPort: 8200
+          name: vault
+        env:
+        - name: VAULT_ADDR
+          value: http://127.0.0.1:8200
+        - name: SKIP_SETCAP
+          value: "true"
+        volumeMounts:
+        - name: vault-storage
+          mountPath: /vault/data
+  volumeClaimTemplates:
+  - metadata:
+      name: vault-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: sc-ontap-nas
+      resources:
+        requests:
+          storage: 10Gi
+
+
+oc apply -f vault-cdp.yaml
+oc get pods -n cdp | grep vault
+oc describe pod vault-0 -n cdp
+oc logs pod/vault-0 -n cdp
+
+docker image ls | grep vault
+
