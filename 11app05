@@ -57,3 +57,10 @@ vault write auth/kubernetes/role/cdp-role \
   bound_service_account_namespaces=cdp \
   policies=default \
   ttl=24h
+
+
+
+oc create clusterrolebinding allow-cdp-tokenreview \
+  --clusterrole=system:auth-delegator \
+  --group=system:serviceaccounts:cdp
+
