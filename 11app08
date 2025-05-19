@@ -1,0 +1,33 @@
+To create the same ResourceQuota in xyz2, follow these steps:
+1. Save the existing ResourceQuota from xyz to a file:
+bash
+Copy
+Edit
+oc get resourcequota compute-resources -n xyz -o yaml > rq-compute-xyz.yaml
+2. Edit the file to change the namespace:
+bash
+Copy
+Edit
+sed -i 's/namespace: xyz/namespace: xyz2/' rq-compute-xyz.yaml
+Also remove the following fields from the YAML (either manually or using yq):
+
+metadata.creationTimestamp
+
+metadata.resourceVersion
+
+metadata.uid
+
+status
+
+Or do it manually in a text editor to avoid issues.
+
+3. Apply it to xyz2:
+bash
+Copy
+Edit
+oc apply -f rq-compute-xyz.yaml
+✅ Final: Verify
+bash
+Copy
+Edit
+oc describe resourcequota compute-resources -n xyz2
