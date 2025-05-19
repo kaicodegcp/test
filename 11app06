@@ -1,0 +1,43 @@
+Test Vault Kubernetes Auth API (Manually, Using TLS)
+🛠 Step-by-Step on OpenShift Admin Node (or Anywhere With curl & CA Cert)
+✅ Step 1: Get the drs-admin service account token
+bash
+Copy
+Edit
+SA_TOKEN=$(oc sa get-token drs-admin -n cdp)
+If this fails (e.g., get-token is deprecated), use:
+
+bash
+Copy
+Edit
+oc get secret -n cdp $(oc get sa drs-admin -n cdp -o jsonpath='{.secrets[0].name}') -o go-template='{{.data.token | base64decode}}'
+✅ Step 2: Perform the Vault login API call using TLS cert
+bash
+Copy
+Edit
+curl -X POST https://vault-cdp-vault.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net/v1/auth/cdp/login \
+  -H "Content-Type: application/json" \
+  -d '{"jwt":"'"$SA_TOKEN"'", "role":"cdp-role"}' \
+  --cacert /opt/registry/certs/domain.crt
+✅ Replace /opt/registry/certs/domain.crt with the actual trusted CA path if different.
+
+✅ Expected Output:
+If role cdp-role is configured inside Vault:
+
+json
+Copy
+Edit
+{
+  "auth": {
+    "client_token": "hvs.abcxyz...",
+    ...
+  }
+}
+If it fails (like your Cloudera Manager install did), you’ll see:
+
+json
+Copy
+Edit
+{
+  "errors": ["permission denied"]
+}
