@@ -63,4 +63,4 @@ vault write auth/kubernetes/role/cdp-role \
 oc create clusterrolebinding allow-cdp-tokenreview \
   --clusterrole=system:auth-delegator \
   --group=system:serviceaccounts:cdp
-
+This binding gives all service accounts in cdp namespace the needed access to call that API.
