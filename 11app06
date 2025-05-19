@@ -43,5 +43,9 @@ Edit
 }
 
 
-oc set env deploy/vault --overwrite KUBERNETES_SERVICE_HOST=kubernetes.default.svc
+oc set env deploy/vault --overwrite KUBERNETES_SERVICE_HOST=kubernetes.default.svc -n cdp
+
+
+oc set env statefulset vault KUBERNETES_SERVICE_HOST=kubernetes.default.svc -n cdp
+
 
