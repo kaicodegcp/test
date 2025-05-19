@@ -1,0 +1,87 @@
+When you run:
+
+bash
+Copy
+Edit
+oc apply -f inject-cert-ds.yaml
+OpenShift schedules a pod on each node, and it mounts /etc, injects your ca.crt, and runs update-ca-trust.
+
+✅ Steps to Proceed (from bdgtr076x11t1)
+🔸 Create the ConfigMap (run this once):
+
+bash
+Copy
+Edit
+oc create configmap registry-cert \
+  --from-file=ca.crt=/opt/registry/certs/domain.crt \
+  -n openshift-config
+🔸 Save the below DaemonSet YAML as inject-cert-ds.yaml:
+
+yaml
+Copy
+Edit
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: inject-registry-cert
+  namespace: openshift-config
+spec:
+  selector:
+    matchLabels:
+      name: inject-registry-cert
+  template:
+    metadata:
+      labels:
+        name: inject-registry-cert
+    spec:
+      hostPID: true
+      hostNetwork: true
+      tolerations:
+      - operator: "Exists"
+      containers:
+      - name: install-cert
+        image: registry.access.redhat.com/ubi8/ubi:latest
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          mkdir -p /host/etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000
+          cp /certs/ca.crt /host/etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000/ca.crt
+          chroot /host update-ca-trust extract || true
+          sleep 300
+        volumeMounts:
+        - name: certs
+          mountPath: /certs
+        - name: host-etc
+          mountPath: /host/etc
+      volumes:
+      - name: certs
+        configMap:
+          name: registry-cert
+      - name: host-etc
+        hostPath:
+          path: /etc
+🔸 Apply the DaemonSet:
+
+bash
+Copy
+Edit
+oc apply -f inject-cert-ds.yaml
+🔸 Monitor and validate:
+
+bash
+Copy
+Edit
+oc get pods -n openshift-config -l name=inject-registry-cert
+oc logs <inject-registry-cert pod on bdgtr051x03h5> -n openshift-config
+Look for:
+
+nginx
+Copy
+Edit
+Cert installed on bdgtr051x03h5
+🔸 Restart vault-0:
+
+bash
+Copy
+Edit
+oc delete pod vault-0 -n cdp
