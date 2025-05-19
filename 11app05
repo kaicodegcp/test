@@ -1,0 +1,59 @@
+Step-by-Step Fix with oc adm Commands
+🔹 1. Ensure the ServiceAccount drs-admin Exists
+bash
+Copy
+Edit
+oc get sa drs-admin -n cdp || oc create sa drs-admin -n cdp
+🔹 2. Grant Required Permissions to drs-admin
+✅ Option A: Grant Minimal Permissions (Recommended)
+This gives just enough permissions for Vault authentication:
+
+bash
+Copy
+Edit
+oc adm policy add-cluster-role-to-user \
+  system:auth-delegator \
+  -z drs-admin \
+  -n cdp
+This allows Vault to:
+
+Verify service account tokens
+
+Perform token review
+
+✅ Option B: (Optional) Allow Reading Pod/ServiceAccount Info (some Vault setups require)
+bash
+Copy
+Edit
+oc adm policy add-role-to-user \
+  view \
+  -z drs-admin \
+  -n cdp
+This allows:
+
+Reading pods
+
+Reading service account metadata
+
+🔹 3. (If Needed) Allow Anyuid SCC for the Vault Pod
+If your Vault pod needs to run as root or a non-default UID:
+
+bash
+Copy
+Edit
+oc adm policy add-scc-to-user anyuid \
+  -z drs-admin \
+  -n cdp
+✅ This step is only needed if Vault is crashing due to user permission issues (not mandatory for auth).
+
+📌 Next: Vault-Side Role Must Match
+Once you’ve fixed permissions with oc adm, make sure your Vault role configuration matches:
+
+bash
+Copy
+Edit
+vault write auth/kubernetes/role/cdp-role \
+  bound_service_account_names=drs-admin \
+  bound_service_account_namespaces=cdp \
+  policies=default \
+  ttl=24h
