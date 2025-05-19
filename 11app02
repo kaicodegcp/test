@@ -85,3 +85,36 @@ bash
 Copy
 Edit
 oc delete pod vault-0 -n cdp
+
+
+
+Step 1: Recreate Docker Pull Secret in cdp Namespace
+Run this command:
+
+bash
+Copy
+Edit
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@citi.com \
+  -n cdp
+🔹 Step 2: Patch the Default Service Account to Use It
+bash
+Copy
+Edit
+oc patch serviceaccount default -n cdp \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+🔹 Step 3: Delete and Recreate the Vault Pod
+bash
+Copy
+Edit
+oc delete pod vault-0 -n cdp
+oc apply -f vault-cdp1.yaml
+🔹 Step 4: Confirm Status
+bash
+Copy
+Edit
+oc get pod vault-0 -n cdp -w
+You're looking for status to change to Running.
