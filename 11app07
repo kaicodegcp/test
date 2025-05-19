@@ -1,0 +1,78 @@
+1. Check Vault ServiceAccount Permissions
+In xyz, check which ServiceAccount was used and if it has permissions to authenticate with Vault:
+
+bash
+Copy
+Edit
+oc get serviceaccount -n xyz
+oc describe serviceaccount default -n xyz
+oc get rolebindings,clusterrolebindings -n xyz | grep default
+Then replicate same RBAC in cdp2:
+
+bash
+Copy
+Edit
+oc describe serviceaccount default -n cdp2
+oc get rolebindings,clusterrolebindings -n cdp2 | grep default
+You may need to bind a ClusterRole to allow access:
+
+bash
+Copy
+Edit
+oc adm policy add-cluster-role-to-user cluster-admin system:serviceaccount:cdp2:default
+Or replicate the exact rolebindings from xyz.
+
+✅ 2. Verify vault-0 Pod Logs
+Check if vault-0 pod is healthy in cdp2:
+
+bash
+Copy
+Edit
+oc get pods -n cdp2 | grep vault
+oc logs vault-0 -n cdp2
+If vault-0 is not ready, or failing TLS/auth, Vault login will break.
+
+✅ 3. Check if Certs/ConfigMaps Are Identical
+Verify if registry-certs and TLS ConfigMaps from xyz were properly replicated to cdp2.
+
+Run this in both namespaces and compare:
+
+bash
+Copy
+Edit
+oc get configmap -n xyz
+oc get configmap -n cdp2
+Specifically check:
+
+bash
+Copy
+Edit
+oc describe configmap registry-certs -n xyz
+oc describe configmap registry-certs -n cdp2
+Also check if vault pod is mounting those certs in cdp2.
+
+✅ 4. Confirm Vault Endpoint and DNS Reachability
+From the Cloudera Manager host or inside a pod:
+
+bash
+Copy
+Edit
+curl -vk https://vault-cdp2-vault.apps.mlab-.../v1/sys/health
+You should see HTTP/2 200 or HTTP/2 429 (Vault ready).
+If it's 403, it confirms permission issue.
+
+✅ Final Fix Steps Summary
+✅ Ensure the default ServiceAccount in cdp2 has same RBAC as xyz (use oc adm policy).
+
+✅ Ensure ConfigMaps, Secrets, and TLS certs in cdp2 are copied exactly from working xyz.
+
+✅ Validate vault-0 pod is healthy and ready (oc logs vault-0 -n cdp2).
+
+✅ Test Vault API login manually with curl to identify token/auth failure reason.
+
+✅ Optionally bind cluster-admin temporarily for troubleshooting:
+
+bash
+Copy
+Edit
+oc adm policy add-cluster-role-to-user cluster-admin system:serviceaccount:cdp2:default
