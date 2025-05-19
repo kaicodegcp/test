@@ -1,0 +1,43 @@
+Step 1: Get the working image pull secret from xyz
+bash
+Copy
+Edit
+oc get secret -n xyz | grep docker
+Example output:
+
+arduino
+Copy
+Edit
+cdp-private-installer-docker-pull-secret   kubernetes.io/dockerconfigjson
+default-dockercfg-6q2bq                    kubernetes.io/dockercfg
+🔧 Step 2: Copy the same secret into cdp namespace
+You can do this in one line:
+
+bash
+Copy
+Edit
+oc get secret cdp-private-installer-docker-pull-secret -n xyz -o yaml \
+| sed 's/namespace: xyz/namespace: cdp/' \
+| oc apply -f -
+Repeat for any other secret like default-dockercfg-6q2bq if needed.
+
+🔧 Step 3: Patch the default service account in cdp to use this pull secret
+bash
+Copy
+Edit
+oc patch serviceaccount default -n cdp --type='json' -p='[
+  {
+    "op": "add",
+    "path": "/imagePullSecrets/-",
+    "value": { "name": "cdp-private-installer-docker-pull-secret" }
+  }
+]'
+(Repeat for other secrets if required.)
+
+✅ Final Step: Re-deploy your vault-0 pod
+You should now be able to pull the image without triggering:
+
+javascript
+Copy
+Edit
+Error: SignatureValidationFailed
