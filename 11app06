@@ -41,3 +41,7 @@ Edit
 {
   "errors": ["permission denied"]
 }
+
+
+oc set env deploy/vault --overwrite KUBERNETES_SERVICE_HOST=kubernetes.default.svc
+
