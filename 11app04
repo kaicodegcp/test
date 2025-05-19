@@ -1,0 +1,116 @@
+1. Trusted Registry Configuration
+🛠 You created a ConfigMap with your internal CA cert:
+sh
+Copy
+Edit
+oc create configmap registry-certs \
+  --from-file=sd-wv58-kflz.nam.nsroot.net..5000=/opt/registry/certs/domain.crt \
+  -n openshift-config
+This tells OpenShift to trust the custom Docker registry's TLS cert.
+
+🛠 You patched the cluster to add that trusted cert:
+sh
+Copy
+Edit
+oc patch image.config.openshift.io/cluster --type=merge -p \
+  '{"spec":{"additionalTrustedCA":{"name":"registry-certs"}}}'
+✅ 2. Allow Internal Registry
+You added your registry under allowed sources (already configured):
+
+yaml
+Copy
+Edit
+spec:
+  registrySources:
+    allowedRegistries:
+    - sd-wv58-kflz.nam.nsroot.net:5000
+✅ This whitelisted your internal Docker registry for image pulls.
+
+✅ 3. Create Docker Registry Secret for Pulling Images
+You created a Docker pull secret with your private registry credentials:
+
+sh
+Copy
+Edit
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@citi.com \
+  -n cdp
+✅ 4. Patch Default ServiceAccount in Namespace
+You patched the default service account to include the docker-creds secret:
+
+sh
+Copy
+Edit
+oc patch serviceaccount default -n cdp -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+This allowed pods in the cdp namespace to use that registry secret when pulling images.
+
+✅ 5. Vault Pod Deployment
+You applied your working pod YAML:
+
+sh
+Copy
+Edit
+oc apply -f vault-cdp-1.yaml
+You confirmed the pod is now in Running state:
+
+arduino
+Copy
+Edit
+container image ... already present
+Created container vault
+Started container vault
+✅ Pod is successfully created and running.
+
+📋 Final Checklist for Future Cluster or Namespace
+To apply this in any new namespace or OpenShift cluster:
+
+A. Copy and Trust Registry Certificate
+sh
+Copy
+Edit
+oc create configmap registry-certs \
+  --from-file=sd-wv58-kflz.nam.nsroot.net..5000=/opt/registry/certs/domain.crt \
+  -n openshift-config
+
+oc patch image.config.openshift.io/cluster --type=merge -p \
+  '{"spec":{"additionalTrustedCA":{"name":"registry-certs"}}}'
+B. Allow Your Internal Registry
+Make sure this is present in:
+
+sh
+Copy
+Edit
+oc edit image.config.openshift.io/cluster
+Under:
+
+yaml
+Copy
+Edit
+spec:
+  registrySources:
+    allowedRegistries:
+      - sd-wv58-kflz.nam.nsroot.net:5000
+C. Create Docker Pull Secret in Your Target Namespace
+sh
+Copy
+Edit
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=dummy@citi.com \
+  -n <your-namespace>
+D. Patch ServiceAccount in Target Namespace
+sh
+Copy
+Edit
+oc patch serviceaccount default -n <your-namespace> \
+  -p '{"imagePullSecrets": [{"name": "docker-creds"}]}'
+E. Deploy the Pod
+sh
+Copy
+Edit
+oc apply -f vault-cdp-1.yaml
