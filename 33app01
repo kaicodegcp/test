@@ -47,3 +47,12 @@ What pod/service is showing this error (vault, control-plane, or a CDS installer
 Do you want help finding the configmap/env variable causing it?
 
 I can help trace exactly where this incorrect KUBERNETES_SERVICE_HOST is set.
+
+
+
+
+
+oc get deploy vault -o yaml -n xyz2 > old.yaml
+oc get deploy vault -o yaml -n cdp2 > new.yaml
+diff old.yaml new.yaml
+
