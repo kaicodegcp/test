@@ -58,3 +58,59 @@ Copy
 Edit
 curl -v https://api.<cluster-name>:6443 --cacert /tmp/domain.crt
 Should return 200 OK or valid TLS handshake.
+
+=================================================================
+
+
+Fix: Build Full Certificate Chain for Trust
+🔹 Step 1: Concatenate Full Chain
+Let’s build a proper CA bundle (trusted chain):
+
+bash
+Copy
+Edit
+cat /opt/registry/certs/ca.crt /opt/cloudera/security/x509/root_ca_cert.pem > /tmp/ca-bundle.crt
+If ca.crt already contains the intermediate cert, and root_ca_cert.pem is your root, this forms the full chain.
+
+🔹 Step 2: Verify the Chain is Valid
+bash
+Copy
+Edit
+openssl verify -CAfile /tmp/ca-bundle.crt /opt/registry/certs/domain.crt
+Expected output:
+
+swift
+Copy
+Edit
+/opt/registry/certs/domain.crt: OK
+🔹 Step 3: Apply to System Trust Store
+bash
+Copy
+Edit
+cp /tmp/ca-bundle.crt /etc/pki/ca-trust/source/anchors/ca-bundle.crt
+update-ca-trust extract
+This will include your updated cert chain in:
+
+swift
+Copy
+Edit
+/etc/pki/tls/certs/ca-bundle.crt
+🔹 Step 4: Final Curl Validation
+bash
+Copy
+Edit
+curl -v https://console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443
+✅ If no self signed certificate error is shown, you’re good to go.
+
+Optional Verification: See Server-Provided Cert Chain
+If still unsure, run:
+
+bash
+Copy
+Edit
+openssl s_client -connect console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443 -showcerts
+This shows what the server sends vs what’s missing from your CA bundle.
+
+
+
+
