@@ -74,3 +74,72 @@ curl -v -k \
   -H "Content-Type: application/json" \
   -d @vault-login.json
 
+
+=============================================
+How to Fix It
+🔧 Option 1: Patch Live ResourceQuota
+Use oc patch to avoid resourceVersion conflicts:
+
+bash
+Copy
+Edit
+oc patch resourcequota compute-resources -n cdp2 --type=merge -p '{
+  "spec": {
+    "hard": {
+      "limits.cpu": "100",
+      "limits.memory": "500Gi",
+      "pods": "90",
+      "requests.cpu": "90",
+      "requests.memory": "500Gi"
+    }
+  }
+}'
+This directly updates the live quota without replacing the full object.
+
+🔁 Option 2: Refresh and Reapply the Latest YAML
+If you prefer editing YAML:
+
+Export the live object without resourceVersion and status:
+
+bash
+Copy
+Edit
+oc get resourcequota compute-resources -n cdp2 -o yaml > updated-rq.yaml
+Edit updated-rq.yaml:
+
+Remove the entire status: block.
+
+Remove the creationTimestamp, resourceVersion, and uid fields under metadata:.
+
+Keep only:
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-resources
+  namespace: cdp2
+spec:
+  hard:
+    limits.cpu: "100"
+    limits.memory: 500Gi
+    pods: "90"
+    requests.cpu: "90"
+    requests.memory: 500Gi
+Apply the cleaned-up version:
+
+bash
+Copy
+Edit
+oc apply -f updated-rq.yaml
+🧼 Optional: Delete and Recreate the Quota (Only if Safe)
+If no production workloads are depending on the quota:
+
+bash
+Copy
+Edit
+oc delete resourcequota compute-resources -n cdp2
+oc apply -f rq-compute-cdp2.yaml
+
