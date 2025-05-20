@@ -146,3 +146,39 @@ update-ca-trust extract
 
 
 
+Option 2: Ignore TLS validation (Not Recommended)
+For testing only:
+
+bash
+Copy
+Edit
+curl -k https://console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443
+This bypasses verification but is insecure and not valid for Cloudera installs.
+
+✅ Option 3: Replace API Server Certs with Org-Trusted CA (Advanced)
+This requires:
+
+Reconfiguring OpenShift to use an externally trusted TLS cert for the API server (via apiServer.certificates).
+
+Updating all relevant OpenShift ConfigMaps and components.
+
+⚠️ This is intrusive and generally not done unless a corporate CA is required across the cluster.
+
+✅ Recommendation for Your Case:
+Go with Option 1 – add the OpenShift internal CA using the kube-root-ca.crt ConfigMap.
+
+📌 Next Steps:
+Run this from your admin host (bdgtr076x11t1):
+
+bash
+Copy
+Edit
+oc get configmap -n kube-system kube-root-ca.crt -o jsonpath='{.data.ca\.crt}' > /tmp/openshift-api-ca.crt
+Then:
+
+bash
+Copy
+Edit
+curl -v https://console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443 --cacert /tmp/openshift-api-ca.crt
+Let me know what it returns — if it succeeds, we’ll make it permanent.
+
