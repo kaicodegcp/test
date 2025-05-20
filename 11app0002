@@ -1,0 +1,60 @@
+Step 1: Transfer New Certs to Admin Host
+From your Docker server (sd-wv58-kflz.nam.nsroot.net):
+
+bash
+Copy
+Edit
+scp /opt/registry/certs/domain.crt root@bdgtr076x11t1.nam.nsroot.net:/tmp/
+scp /opt/registry/certs/ca.crt root@bdgtr076x11t1.nam.nsroot.net:/tmp/
+🔹 Step 2: Log in to the Admin Host
+bash
+Copy
+Edit
+ssh root@bdgtr076x11t1.nam.nsroot.net
+🔹 Step 3: Create ConfigMap in OpenShift (openshift-config)
+This will update the cluster-wide CA bundle to trust your TLS cert.
+
+bash
+Copy
+Edit
+oc create configmap custom-ca \
+  --from-file=ca-bundle.crt=/tmp/domain.crt \
+  -n openshift-config --dry-run=client -o yaml | oc apply -f -
+Use domain.crt if it has all required SANs for API server, registry, etc.
+
+🔹 Step 4: Patch OpenShift Proxy to Use the Custom CA
+bash
+Copy
+Edit
+oc patch proxy/cluster --type=merge -p '{"spec":{"trustedCA":{"name":"custom-ca"}}}'
+🔹 Step 5: Verify Patch
+bash
+Copy
+Edit
+oc get proxy/cluster -o jsonpath='{.spec.trustedCA.name}'
+# Expected Output: custom-ca
+🔹 Step 6: Trust the CA on Host OS (Optional but Safe)
+Copy CA into system trust and extract:
+
+bash
+Copy
+Edit
+cp /tmp/domain.crt /etc/pki/ca-trust/source/anchors/domain.crt
+update-ca-trust extract
+🔹 Step 7: Restart CDS-Related Pods (e.g., Vault, Console)
+If already deployed:
+
+bash
+Copy
+Edit
+oc delete pod vault-0 -n <cdp-namespace>
+oc delete pod <cds-console-pod> -n <cdp-namespace>
+🔹 Step 8: Re-run CDS Install
+Go back to the Cloudera Manager web UI and Retry the installation from the "Installation Progress" step.
+
+🧪 Optional: Test API Trust Manually
+bash
+Copy
+Edit
+curl -v https://api.<cluster-name>:6443 --cacert /tmp/domain.crt
+Should return 200 OK or valid TLS handshake.
