@@ -33,3 +33,44 @@ bash
 Copy
 Edit
 oc delete pod <vault-pod-name> -n cdp2
+
+
+
+=============
+Step-by-Step Manual Vault Login Test (Kubernetes Auth)
+🔹 1. Extract the JWT Token from a Pod
+bash
+Copy
+Edit
+oc get pod -n cdp2
+Pick a running pod using the correct service account (e.g., vault-auth or default).
+
+Then:
+
+bash
+Copy
+Edit
+oc exec -n cdp2 <pod-name> -- cat /var/run/secrets/kubernetes.io/serviceaccount/token > jwt-token.txt
+🔹 2. Create the Login Payload
+Create a file called vault-login.json:
+
+json
+Copy
+Edit
+{
+  "jwt": "<paste contents of jwt-token.txt here>",
+  "role": "cdp2-role"
+}
+Replace "cdp2-role" with the name of the Vault Kubernetes role that was configured for this workflow.
+
+🔹 3. Send the API Request Using curl
+bash
+Copy
+Edit
+curl -v -k \
+  --cert /etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000/domain.crt \
+  --key /etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000/domain.key \
+  -X POST https://vault-cdp2-vault.apps.mlab-ctgitdcai03d.ecs.dyn.nsroot.net/v1/auth/cdp2/login \
+  -H "Content-Type: application/json" \
+  -d @vault-login.json
+
