@@ -1,0 +1,49 @@
+What to Do (Safe Fix)
+Check the environment/config value that is setting Kubernetes API host.
+
+Look for:
+
+bash
+Copy
+Edit
+KUBERNETES_SERVICE_HOST=https://console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443
+Override it with the internal one:
+
+bash
+Copy
+Edit
+export KUBERNETES_SERVICE_HOST=https://kubernetes.default.svc
+Or in oc:
+
+bash
+Copy
+Edit
+oc set env deploy/vault KUBERNETES_SERVICE_HOST=kubernetes.default.svc --overwrite
+If using Vault Kubernetes auth (common in CDS install), configure it like this:
+
+bash
+Copy
+Edit
+vault write auth/kubernetes/config \
+  kubernetes_host="https://kubernetes.default.svc" \
+  kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+  token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+Restart the CDS install (or re-run the failing step) after the fix.
+
+🧪 Validate TLS Connectivity (Optional)
+From a pod in the cdp namespace (or where Vault/CDS is running), run:
+
+bash
+Copy
+Edit
+curl --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+     https://kubernetes.default.svc:443/version
+If you get JSON back (like Kubernetes version info), TLS is working.
+
+Let me know:
+
+What pod/service is showing this error (vault, control-plane, or a CDS installer job)?
+
+Do you want help finding the configmap/env variable causing it?
+
+I can help trace exactly where this incorrect KUBERNETES_SERVICE_HOST is set.
