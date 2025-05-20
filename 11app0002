@@ -111,6 +111,11 @@ Edit
 openssl s_client -connect console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443 -showcerts
 This shows what the server sends vs what’s missing from your CA bundle.
 
+-------------------
+
+openssl s_client -connect console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443 -showcerts
+
+
 
 
 
