@@ -183,3 +183,53 @@ bash
 Copy
 Edit
 oc apply -f rq-compute-cdp2.yaml
+
+
+
+-----------------------------------------------------------------------------------------------------------
+
+
+ Add Resource Requests & Limits in vault-cdp-2.yaml
+Update your vault-cdp-2.yaml like this:
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vault-0
+  namespace: cdp2
+spec:
+  containers:
+  - name: vault
+    image: sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+    command: ["vault"]
+    args: ["server", "--dev"]
+    ports:
+    - containerPort: 8200
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+  imagePullSecrets:
+  - name: docker-creds
+  restartPolicy: Never
+You can adjust cpu and memory values based on what your quota allows. These minimal values are usually accepted unless quotas are very tight.
+
+🚀 Apply the Fixed YAML
+bash
+Copy
+Edit
+oc apply -f vault-cdp-2.yaml
+🧪 Verify Pod Status
+bash
+Copy
+Edit
+oc get pod vault-0 -n cdp2
+oc describe pod vault-0 -n cdp2
+oc logs vault-0 -n cdp2
+
