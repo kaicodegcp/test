@@ -143,3 +143,43 @@ Edit
 oc delete resourcequota compute-resources -n cdp2
 oc apply -f rq-compute-cdp2.yaml
 
+
+///////////////////////////////////////////////////////////////
+
+Step-by-step:
+1. Backup current live quota:
+bash
+Copy
+Edit
+oc get resourcequota compute-resources -n cdp2 -o yaml > old-rq-backup.yaml
+2. Delete the current ResourceQuota:
+bash
+Copy
+Edit
+oc delete resourcequota compute-resources -n cdp2
+3. Apply new ResourceQuota cleanly:
+If your rq-compute-cdp2.yaml looks like this:
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-resources
+  namespace: cdp2
+spec:
+  hard:
+    limits.cpu: "100"
+    limits.memory: 500Gi
+    pods: "90"
+    requests.cpu: "90"
+    requests.memory: 500Gi
+  scopes:
+    - NotTerminating
+Apply it:
+
+bash
+Copy
+Edit
+oc apply -f rq-compute-cdp2.yaml
