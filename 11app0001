@@ -53,3 +53,71 @@ Edit
 oc create secret tls cdp-tls-secret \
   --cert=domain.crt --key=domain.key \
   -n <cdp-namespace>
+
+
+
+
+===========================
+domain.crt → /opt/registry/certs/domain.crt
+
+domain.key → /opt/registry/certs/domain.key
+
+ca-cert.pem → /opt/registry/certs/ca.crt
+
+✅ Since you regenerated your TLS certs, you must:
+1. Update the files used by the Docker registry container:
+bash
+Copy
+Edit
+sudo cp /home/gpabadmin/.../domain.crt /opt/registry/certs/domain.crt
+sudo cp /home/gpabadmin/.../domain.key /opt/registry/certs/domain.key
+sudo cp /home/gpabadmin/.../ca-cert.pem /opt/registry/certs/ca.crt
+2. Restart the Docker registry container
+First, find the container ID or name:
+
+bash
+Copy
+Edit
+docker ps | grep registry
+Then restart:
+
+bash
+Copy
+Edit
+docker restart <registry_container_name_or_id>
+If you're unsure of the name, it's probably secure-registry or similar.
+
+🔐 Optional: If You're Still Using registry:2 Image
+Make sure your Docker run command includes these correctly:
+
+bash
+Copy
+Edit
+-e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+-e REGISTRY_HTTP_TLS_KEY=/certs/domain.key
+If not, stop and re-run the container with the correct paths and updated certs.
+
+✅ After Restart — Test Access
+From the same machine:
+
+bash
+Copy
+Edit
+curl -u admin:yourpassword https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog --cacert /opt/registry/certs/ca.crt
+Expected output:
+
+json
+Copy
+Edit
+{"repositories":[]}
+(or a list of image repos)
+
+✅ Also: Trust Cert on OpenShift Nodes
+Each OpenShift node pulling from this registry must trust the new ca.crt:
+
+bash
+Copy
+Edit
+# On each node
+cp /opt/registry/certs/ca.crt /etc/pki/ca-trust/source/anchors/
+update-ca-trust extract
