@@ -1,0 +1,55 @@
+Required Fixes
+To ensure the TLS cert is trusted by the CDS installer and Kubernetes API:
+
+1. Update the OpenShift openshift-config ConfigMap
+You need to patch or replace the OpenShift trusted CA bundle with your new domain.crt.
+
+bash
+Copy
+Edit
+oc create configmap custom-ca --from-file=ca-bundle.crt=domain.crt -n openshift-config --dry-run=client -o yaml | oc apply -f -
+Then, patch the cluster to use it:
+
+bash
+Copy
+Edit
+oc patch proxy/cluster --type=merge -p \
+'{"spec":{"trustedCA":{"name":"custom-ca"}}}'
+2. Restart Affected Pods (Optional but Recommended)
+After patching the CA, restart pods like vault-0 or others that rely on TLS verification:
+
+bash
+Copy
+Edit
+oc delete pod vault-0 -n <your-namespace>
+3. Verify the cert was picked up
+bash
+Copy
+Edit
+oc get proxy/cluster -o jsonpath='{.spec.trustedCA.name}'
+Should return: custom-ca
+
+4. Verify SAN entries in your domain.crt
+Ensure your domain.crt includes all SANs (Subject Alternative Names) such as:
+
+FQDN (*.nam.nsroot.net)
+
+Short names (sd-wv58-kflz)
+
+Kubernetes API domains (e.g., api.cluster.local if used)
+
+To verify:
+
+bash
+Copy
+Edit
+openssl x509 -in domain.crt -text -noout | grep -A1 "Subject Alternative Name"
+Optional: Configure via Secret (if CDS expects Secret instead of ConfigMap)
+If the CDS Helm chart or service references a Kubernetes Secret instead, you may need:
+
+bash
+Copy
+Edit
+oc create secret tls cdp-tls-secret \
+  --cert=domain.crt --key=domain.key \
+  -n <cdp-namespace>
