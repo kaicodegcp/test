@@ -1,0 +1,35 @@
+ Final Fix Steps
+🔹 1. Identify the Actual SA Used by the Failing Pod
+Run this again and capture the actual service account:
+
+bash
+Copy
+Edit
+oc get pod -n cdp2 -o jsonpath='{range .items[*]}{@.metadata.name}: {@.spec.serviceAccountName}{"\n"}{end}'
+Look for the pod involved in the Vault install (e.g., vault-0, cdp-preinstall, etc.)
+
+🔹 2. Assign Required Role to That Service Account
+Now use that real SA (say default or vault-auth) and run:
+
+bash
+Copy
+Edit
+oc adm policy add-role-to-user view system:serviceaccount:cdp2:vault-auth -n cdp2
+Or if Vault is using default SA:
+
+bash
+Copy
+Edit
+oc adm policy add-role-to-user view system:serviceaccount:cdp2:default -n cdp2
+🔹 3. [Optional] If view is not enough, assign edit or custom drs ClusterRole
+bash
+Copy
+Edit
+oc adm policy add-cluster-role-to-user drs system:serviceaccount:cdp2:vault-auth
+Replace drs with the name shown in cloudera-cdp2-drs or k8s-cdp2-drs depending on which fits your Vault flow policy.
+
+🔹 4. Restart Pod or Retry the Vault Workflow
+bash
+Copy
+Edit
+oc delete pod <vault-pod-name> -n cdp2
