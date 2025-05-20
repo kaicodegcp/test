@@ -1,0 +1,95 @@
+Part 1: Fix Vault Access Issues via oc Commands
+🔹 1. Verify ServiceAccount Bound to Vault Role in Kubernetes
+Make sure the service account used by Vault (or the installer pod) exists:
+
+bash
+Copy
+Edit
+oc get sa -n cdp2
+If you are unsure of the pod’s service account:
+
+bash
+Copy
+Edit
+oc get pod -n cdp2 -o jsonpath='{.items[*].spec.serviceAccountName}'
+🔹 2. Check Role/ClusterRole Bindings
+To list RoleBinding in namespace cdp2:
+
+bash
+Copy
+Edit
+oc get rolebinding -n cdp2
+To list what roles are bound to the service account:
+
+bash
+Copy
+Edit
+oc describe rolebinding -n cdp2
+To list ClusterRoleBinding across the cluster:
+
+bash
+Copy
+Edit
+oc get clusterrolebinding | grep cdp2
+If missing, create one:
+
+bash
+Copy
+Edit
+oc adm policy add-role-to-user view system:serviceaccount:cdp2:<sa-name> -n cdp2
+Or if cluster-wide:
+
+bash
+Copy
+Edit
+oc adm policy add-cluster-role-to-user cluster-admin system:serviceaccount:cdp2:<sa-name>
+⚠️ Replace <sa-name> with your actual service account (like default or cdp-installer).
+
+✅ Part 2: Validate TLS Certificate Issues (Manual)
+🔹 1. Check if Cert is Trusted by Node
+To manually test if the cert is trusted by OpenShift worker nodes (from a pod or host):
+
+bash
+Copy
+Edit
+openssl s_client -connect vault-cdp2-vault.apps.mlab-ctgitdcai03d.ecs.dyn.nsroot.net:443 -showcerts
+Expected:
+
+You should not see verify error in output.
+
+If you see something like: verify error:num=20:unable to get local issuer certificate, it means the cert is untrusted.
+
+🔹 2. Check if CA is in Cluster-Wide Trusted Store
+To list the current trusted CA bundle:
+
+bash
+Copy
+Edit
+oc get configmap -n openshift-config trusted-ca -o yaml
+If you used a custom domain CA:
+
+bash
+Copy
+Edit
+oc describe configmap openshift-custom-ca -n openshift-config
+Make sure your Vault server’s issuer cert (root or intermediate CA) is included.
+
+🔹 3. Check if Route Uses the Right Cert
+Validate the Vault route TLS:
+
+bash
+Copy
+Edit
+oc get route vault-cdp2-vault -n cdp2 -o yaml
+Look under .spec.tls, .status.ingress[*].host, and compare to your cert details.
+
+✅ Part 3: Optional Debug: Curl from Pod
+If you want to test Vault login manually from a pod:
+
+bash
+Copy
+Edit
+oc run testpod --image=registry.access.redhat.com/ubi8/ubi --restart=Never -it -- bash
+# Inside pod:
+curl -v https://vault-cdp2-vault.apps.mlab-ctgitdcai03d.ecs.dyn.nsroot.net/v1/sys/health
+This helps confirm if certs are valid from inside the cluster.
