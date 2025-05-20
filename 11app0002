@@ -182,3 +182,33 @@ Edit
 curl -v https://console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443 --cacert /tmp/openshift-api-ca.crt
 Let me know what it returns — if it succeeds, we’ll make it permanent.
 
+
+
+
+000000000000000
+
+curl --cacert /tmp/openshift-api-ca.crt https://10.144.0.1:6443
+
+
+curl --cacert /tmp/openshift-api-ca.crt \
+  --resolve console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443:10.144.0.1 \
+  https://console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443
+
+
+Immediate Next Step (Recommended)
+Try:
+
+bash
+Copy
+Edit
+curl --cacert /tmp/openshift-api-ca.crt https://10.144.0.1:6443
+and/or:
+
+bash
+Copy
+Edit
+curl --cacert /tmp/openshift-api-ca.crt \
+  --resolve console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443:10.226.68.82 \
+  https://console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443
+
+
