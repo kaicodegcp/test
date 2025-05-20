@@ -116,6 +116,33 @@ This shows what the server sends vs what’s missing from your CA bundle.
 openssl s_client -connect console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443 -showcerts
 
 
+ppppppppppppppppppp
+
+
+Option 1: Add OpenShift Internal CA to Trust
+If your OpenShift provides a cluster CA cert, add that to your trusted CA anchors.
+
+Extract the OpenShift CA cert
+On the OpenShift cluster (or ask your OpenShift admin), run:
+
+bash
+Copy
+Edit
+oc get configmap -n kube-system kube-root-ca.crt -o jsonpath='{.data.ca\.crt}' > /tmp/openshift-api-ca.crt
+Verify it works with the OpenShift server:
+
+bash
+Copy
+Edit
+curl -v https://console-openshift-console.apps.mlab-ctigtdcai03d.ecs.dyn.nsroot.net:6443 \
+  --cacert /tmp/openshift-api-ca.crt
+If that works, trust it system-wide:
+
+bash
+Copy
+Edit
+cp /tmp/openshift-api-ca.crt /etc/pki/ca-trust/source/anchors/
+update-ca-trust extract
 
 
 
