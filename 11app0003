@@ -53,3 +53,106 @@ bash
 Copy
 Edit
 oc delete pod cdp-embedded-db-0 -n cdp3
+
+
+
+
+
+
+====================================
+
+
+Step 1: Delete the Broken Pod
+You cannot update a pod’s container image or spec directly; delete it first:
+
+bash
+Copy
+Edit
+oc delete pod cdp-embedded-db-0 -n cdp3
+✅ Step 2: Confirm Docker Registry Secret Exists
+You already have:
+
+yaml
+Copy
+Edit
+imagePullSecrets:
+  - name: docker-creds
+Verify it exists:
+
+bash
+Copy
+Edit
+oc get secret docker-creds -n cdp3
+If not present, create it:
+
+bash
+Copy
+Edit
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password='<your-password>' \
+  --docker-email=unused@example.com \
+  -n cdp3
+✅ Step 3: Ensure TLS Cert is Trusted on Worker Node(s)
+Run this on each worker node:
+
+bash
+Copy
+Edit
+cp /etc/pki/ca-trust/source/anchors/domain.crt /etc/pki/ca-trust/source/anchors/sd-wv58-kflz.crt
+update-ca-trust extract
+systemctl restart docker
+systemctl restart kubelet
+✅ Step 4: Create a Clean Manual Pod Definition
+Here’s a corrected pod YAML file (cdp-embedded-db-manual.yaml) you can use:
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cdp-embedded-db-0
+  namespace: cdp3
+spec:
+  containers:
+    - name: cdp-embedded-db
+      image: sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/rhel8/postgresql-10:1-215
+      command: ["cdp-embedded-db"]
+      args: ["server", "--dev"]
+      ports:
+        - containerPort: 8200
+      volumeMounts:
+        - name: certs
+          mountPath: /etc/servercerts
+  imagePullSecrets:
+    - name: docker-creds
+  volumes:
+    - name: certs
+      secret:
+        secretName: cdp-release-serverkey-secret
+  restartPolicy: Never
+Save this YAML and apply:
+
+bash
+Copy
+Edit
+oc apply -f cdp-embedded-db-manual.yaml
+✅ Step 5: Monitor the Pod
+bash
+Copy
+Edit
+oc get pods -n cdp3 -w
+Once it’s Running, confirm:
+
+bash
+Copy
+Edit
+oc logs cdp-embedded-db-0 -n cdp3
+✅ Optional: If Needed, Re-check Certificate Issues
+bash
+Copy
+Edit
+curl -v --cacert /etc/pki/ca-trust/source/anchors/domain.crt https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog
+
