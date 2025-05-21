@@ -1,0 +1,55 @@
+curl -v --cacert /etc/pki/ca-trust/source/anchors/old-domain.crt https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog
+
+Copy the OLD domain certificate back to system trust store:
+
+bash
+Copy
+Edit
+cp /path/to/your/old-domain.crt /etc/pki/ca-trust/source/anchors/
+(Ensure this is the actual old .crt file you were previously using successfully.)
+
+Update system trust store:
+
+bash
+Copy
+Edit
+update-ca-trust extract
+Restart Docker & CRI-O (if used):
+
+bash
+Copy
+Edit
+systemctl restart docker
+systemctl restart crio  # Only if you're using CRI-O
+(Optional but recommended): Restart kubelet:
+
+bash
+Copy
+Edit
+systemctl restart kubelet
+🔁 Repeat steps 1–4 on every worker node listed in:
+
+bash
+Copy
+Edit
+oc get nodes --selector='node-role.kubernetes.io/worker'
+🔎 To Verify:
+Run the following command on each worker node:
+
+bash
+Copy
+Edit
+curl -v --cacert /etc/pki/ca-trust/source/anchors/old-domain.crt https://sd-wv58-kflz.nam.nsroot.net:5000/v2/_catalog
+You should not see a TLS error — and instead get JSON output like:
+
+json
+Copy
+Edit
+{"repositories":["cdp-private/cloudera_thirdparty/…"]}
+🚀 Final Recovery Step:
+Once all nodes have the correct cert, just delete the stuck pod so the image can be re-pulled:
+
+bash
+Copy
+Edit
+oc delete pod cdp-embedded-db-0 -n cdp3
