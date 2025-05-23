@@ -1,0 +1,21 @@
+The EAP Strategic Solutions team has successfully completed the deployment of Cloudera Data Services (CDS) on the Red Hat OpenShift cluster. As part of this effort, key components of Cloudera’s big data platform (including Spark, NiFi, Kafka, and ML services) were containerized and deployed within the OpenShift environment.
+
+What is the benefit:
+This deployment provides significant advantages to EAP application teams currently using the Cloudera Data Platform (CDP). It enables a modernized, container-based architecture that is aligned with current DevOps and cloud-native practices.
+
+How it is useful:
+
+Agility in deployment and scaling: EAP teams can deploy and scale workloads faster compared to traditional VM-based CDP environments.
+
+Faster job setup: Eliminates long wait times for cluster provisioning.
+
+Optimized resource usage: Containers only use what’s needed, reducing resource waste.
+
+Enhanced security and maintainability: Leverages Kubernetes/OpenShift capabilities for patching, upgrades, and policy enforcement.
+
+Flexible deployment models: Supports both on-prem and cloud environments seamlessly.
+
+Self-managed infrastructure: EAP teams can independently manage their infrastructure using this new deployment model.
+
+Next action item:
+Over the next 30 days, the team will focus on configuring CDS on OpenShift clusters for lab environments, enabling further adoption and testing across different use cases.
