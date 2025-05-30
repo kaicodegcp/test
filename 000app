@@ -237,6 +237,65 @@ Let me know the actual key name (domain.crt or something else) if you hit a json
 
 
 
+-----------------
+-----------------
+
+Single Command Block (Works End to End)
+Run this from your working xyz cluster (on bdgtr076x11t1):
+
+bash
+Copy
+Edit
+# Step 1: Dump the secret to a clean file
+oc get secret cdp-private-installer-docker-cert -n xyz -o jsonpath="{.data}" | jq -r 'to_entries[] | select(.key | test(".*crt$")) | .value' | base64 -d > /tmp/domain.crt
+🔹 This uses jq to find any key ending in .crt inside the secret and decodes it.
+
+✅ Now copy the cert to your nacho-cds cluster node:
+bash
+Copy
+Edit
+scp /tmp/domain.crt root@nacho-cds-host:/tmp/domain.crt
+Then log into that node.
+
+✅ On nacho-cds cluster: Trust the cert
+bash
+Copy
+Edit
+# Step 2: Create the ConfigMap in openshift-config
+oc create configmap registry-ca-cert \
+  --from-file=sd-wv58-kflz.nam.nsroot.net.crt=/tmp/domain.crt \
+  -n openshift-config
+bash
+Copy
+Edit
+# Step 3: Patch the proxy to trust this cert
+oc patch proxy/cluster \
+  --type=merge \
+  -p '{"spec":{"trustedCA":{"name":"registry-ca-cert"}}}'
+bash
+Copy
+Edit
+# Step 4: Reboot container runtime (optional) or wait 1–2 minutes
+oc delete pod test-cer-a -n nacho-cds
+Then rerun your test pod.
+
+✅ Final Result:
+Single command to extract cert from secret ✅
+
+No need to touch xyz filesystem ✅
+
+Safe and repeatable ✅
+
+Works cross-cluster ✅
+
+Let me know if jq isn’t installed — I’ll give a non-jq fallback.
+
+
+
+
+
+
+
 
 
 
