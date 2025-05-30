@@ -1,0 +1,49 @@
+Step-by-Step Final Fix from bdgtr076x11t1
+Ensure domain_xyz.crt exists at /root/domain_xyz.crt
+
+Create a MachineConfig with the trusted CA file:
+
+bash
+Copy
+Edit
+cat <<EOF | oc apply -f -
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  name: 99-worker-trusted-ca
+  labels:
+    machineconfiguration.openshift.io/role: worker
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - path: /etc/pki/ca-trust/source/anchors/domain_xyz.crt
+        mode: 0644
+        contents:
+          source: data:text/plain;base64,$(base64 -w0 /root/domain_xyz.crt)
+  osImageURL: ""
+EOF
+This creates a MachineConfig to distribute the cert to all worker nodes under /etc/pki/ca-trust/source/anchors/.
+
+Monitor the MCP for rollout (will take a few minutes):
+
+bash
+Copy
+Edit
+watch oc get mcp
+Wait until UPDATED=True, DEGRADED=False, and UPDATING=False.
+
+After the MCP update is complete, delete and recreate your pod:
+
+bash
+Copy
+Edit
+oc delete pod test-cer-a -n nacho-cds
+oc run test-cer-a \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215 \
+  --env=POSTGRESQL_USER=admin \
+  --env=POSTGRESQL_PASSWORD=admin123 \
+  --env=POSTGRESQL_DATABASE=testdb \
+  --restart=Never -it -n nacho-cds
