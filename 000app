@@ -308,3 +308,40 @@ Tools
 
 
 
+\\\\\\\\\\\\\\\
+
+oc get secret cdp-private-installer-docker-cert -n xyz -o yaml | less
+Look for something like:
+
+yaml
+Copy
+Edit
+data:
+  domain.crt: LS0tLS1CRUdJTiBDRVJ...
+  ca.crt: LS0tLS1CRUdJTiBDRVJ...
+Check which key looks like the certificate (you’ll see base64-encoded blocks).
+
+✅ Once You Know the Key (e.g., domain.crt), Run This:
+Replace domain.crt below with the actual key name:
+
+bash
+Copy
+Edit
+oc get secret cdp-private-installer-docker-cert -n xyz \
+  -o jsonpath="{.data['domain\.crt']}" | base64 -d > /tmp/domain.crt
+Then confirm:
+
+bash
+Copy
+Edit
+cat /tmp/domain.crt
+You should see:
+
+css
+Copy
+Edit
+-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----
+
+
