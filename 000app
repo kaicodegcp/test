@@ -434,3 +434,57 @@ oc run test-cer-a \
   }' \
   --restart=Never -n nacho-cds
 
+====================================
+
+Step 1: Delete and recreate the registry-certs ConfigMap
+bash
+Copy
+Edit
+oc delete configmap registry-certs -n openshift-config
+bash
+Copy
+Edit
+oc create configmap registry-certs \
+  --from-file=sd-wv58-kflz.nam.nsroot.net=/root/domain_xyz.crt \
+  -n openshift-config
+💡 Make sure:
+
+File name is exactly the registry domain
+
+The file has -----BEGIN CERTIFICATE----- and PEM format
+
+🛠️ Step 2: Re-patch OpenShift proxy (to force MCD rollout)
+bash
+Copy
+Edit
+oc patch proxy/cluster --type=merge \
+  -p '{"spec":{"trustedCA":{"name":"registry-certs"}}}'
+⚠️ This will trigger MachineConfigDaemon on all worker nodes to sync /etc/pki/ca-trust without needing a reboot or crio restart.
+
+🔍 Step 3: Monitor rollout
+Run this:
+
+bash
+Copy
+Edit
+watch 'oc get mcp'
+Wait until:
+
+text
+Copy
+Edit
+worker   True   False   True   6   6   6   2025-05-30T13:45:00Z
+If you see UPDATING or a non-zero UPDATING counter, it means the CA is syncing.
+
+✅ Step 4: Test pod again (as is)
+bash
+Copy
+Edit
+oc delete pod test-cer-a -n nacho-cds
+
+oc run test-cer-a \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215 \
+  --env=POSTGRESQL_USER=admin \
+  --env=POSTGRESQL_PASSWORD=admin123 \
+  --env=POSTGRESQL_DATABASE=testdb \
+  --restart=Never -n nacho-cds
