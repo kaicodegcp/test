@@ -1,0 +1,14 @@
+The EAP Strategic Solutions team successfully deployed the control plane of Cloudera Data Services (CDS) on Red Hat OpenShift. This enables containerized CDE/CDW services for EAP teams, allowing faster, scalable, and secure Spark and data warehouse workloads without traditional VM overhead. The deployment modernizes infrastructure, aligns with DevOps practices, and empowers teams to self-manage environments.
+
+Benefits:
+
+Accelerated deployment and job provisioning
+
+Optimized resource usage and reduced waste
+
+Enhanced security via Kubernetes/OpenShift
+
+Self-managed infrastructure for flexibility
+
+Next Steps:
+Focus on configuring CDS for lab environments and expanding adoption across use cases in the next 30 days.
