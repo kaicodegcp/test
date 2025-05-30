@@ -1,0 +1,27 @@
+Manual TLS Cert Trust on RHEL-based Host (e.g., bdgtr076x11t1)
+🔹 Step 1: Copy cert to system trust anchors
+bash
+Copy
+Edit
+cp /root/domain_xyz.crt /etc/pki/ca-trust/source/anchors/
+🔹 Step 2: Update CA trust store
+bash
+Copy
+Edit
+update-ca-trust extract
+🔍 This command integrates the cert into system-wide trust for all applications including Docker/Podman and curl.
+
+🔹 Step 3: Restart Docker (if applicable)
+bash
+Copy
+Edit
+systemctl restart docker
+Or if you're using CRI-O (on OpenShift nodes, which you can't access directly), this won't apply. But on bdgtr076x11t1 — if Docker is pulling images locally (e.g., for proxy), this step is needed.
+
+🔹 Step 4: Test curl against Docker registry (as verification)
+bash
+Copy
+Edit
+curl -v --cacert /root/domain_xyz.crt https://sd-wv58-kflz.nam.nsroot.net:5000/v2/
+You should not see x509: certificate signed by unknown authority.
+
