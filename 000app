@@ -488,3 +488,18 @@ oc run test-cer-a \
   --env=POSTGRESQL_PASSWORD=admin123 \
   --env=POSTGRESQL_DATABASE=testdb \
   --restart=Never -n nacho-cds
+
+
+
+
+
+===================================================
+
+oc delete pod test-cer-a -n nacho-cds
+
+oc run test-cer-a \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215 \
+  --env=POSTGRESQL_USER=admin \
+  --env=POSTGRESQL_PASSWORD=admin123 \
+  --env=POSTGRESQL_DATABASE=testdb \
+  --restart=Never -n nacho-cds
