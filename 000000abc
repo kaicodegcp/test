@@ -1,0 +1,61 @@
+OPTION 1: Trigger Reboot via Node Drain + Delete (Preferred)
+This will safely cordon, drain, and reboot each node by forcing the underlying machine to recreate the VM (or reboot the bare-metal node) while preserving node identity.
+
+🧱 Step-by-step for each worker node:
+bash
+Copy
+Edit
+# Replace with one worker node name at a time
+NODE=bdgtr051x03h5.nam.nsroot.net
+
+# 1. Cordon (prevent new pods from scheduling)
+oc adm cordon $NODE
+
+# 2. Drain (move pods off safely)
+oc adm drain $NODE --ignore-daemonsets --delete-emptydir-data --force
+
+# 3. Delete the Machine (not the Node!)
+# Find machine mapped to the node
+MACHINE=$(oc get machine -n openshift-machine-api -o wide | grep $NODE | awk '{print $1}')
+
+# Then delete the machine to trigger restart/reprovision
+oc delete machine $MACHINE -n openshift-machine-api
+💡 OpenShift will automatically recreate the Machine and Node using the MachineSet. This triggers a reboot + new TLS usage.
+
+✅ OPTION 2: Annotate MCP for Rolling Reboot
+If you're not using MachineSets or don't want to disrupt the node identity:
+
+bash
+Copy
+Edit
+# Trigger a rollout by changing annotation on MCP
+oc patch mcp worker \
+  --type merge \
+  -p '{"spec":{"paused":false},"metadata":{"annotations":{"machineconfiguration.openshift.io/forceReboot":"true"}}}'
+This triggers a rolling reboot of worker nodes and forces certs to reapply (as long as config changed).
+
+🔁 Watch Progress
+bash
+Copy
+Edit
+watch oc get mcp
+Wait until you see:
+
+UPDATED: True
+
+UPDATING: False
+
+DEGRADED: False
+
+✅ Confirm Certs Reloaded
+Re-run your test pod:
+
+bash
+Copy
+Edit
+oc run test-cer-a \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215 \
+  --env=POSTGRESQL_USER=admin \
+  --env=POSTGRESQL_PASSWORD=admin123 \
+  --env=POSTGRESQL_DATABASE=testdb \
+  --restart=Never -it -n nacho-cds
