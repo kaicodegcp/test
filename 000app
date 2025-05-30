@@ -17,36 +17,54 @@ oc run test-cer-a \
 --env=POSTGRESQL_MAX_CONNECTIONS=200
 --env=POSTGRESQL_SHARED_BUFFERS=64MB
 
+Step 1: Export the Secret or ConfigMap from xyz Cluster
+Export secret to file:
 
-
-Copy Docker Pull Secret
 bash
 Copy
 Edit
-oc get secret cdp-private-installer-docker-pull-secret -n xyz -o yaml | \
-sed 's/namespace: xyz/namespace: nacho-cds/' | oc apply -f -
-🔹 2. Link Docker Pull Secret to Service Account
+oc get secret cdp-private-installer-docker-pull-secret -n xyz -o yaml > docker-pull-secret.yaml
+Export configmap (e.g., truststore):
+
+bash
+Copy
+Edit
+oc get configmap cdp-pvc-truststore -n xyz -o yaml > truststore-configmap.yaml
+🔹 Step 2: Edit the YAML (very important)
+Open each file and change the namespace from xyz to nacho-cds.
+
+For example, in docker-pull-secret.yaml:
+
+yaml
+Copy
+Edit
+metadata:
+  name: cdp-private-installer-docker-pull-secret
+  namespace: nacho-cds    # <-- CHANGE THIS
+Do the same for the ConfigMap YAML file.
+
+🔹 Step 3: Apply to nacho-cds cluster
+Now switch your oc CLI to the nacho-cds cluster:
+
+bash
+Copy
+Edit
+export KUBECONFIG=/path/to/nacho-cds-kubeconfig
+oc config use-context <your-nacho-cds-context>
+Apply the files:
+
+bash
+Copy
+Edit
+oc apply -f docker-pull-secret.yaml
+oc apply -f truststore-configmap.yaml
+🔹 Step 4: Link the Secret to Default SA in nacho-cds
 bash
 Copy
 Edit
 oc secrets link default cdp-private-installer-docker-pull-secret --for=pull -n nacho-cds
-🔹 3. Copy TLS ConfigMap (Truststore, if needed for pod TLS chain)
-bash
-Copy
-Edit
-oc get configmap cdp-pvc-truststore -n xyz -o yaml | \
-sed 's/namespace: xyz/namespace: nacho-cds/' | oc apply -f -
-🔹 4. (Optional) Copy cert secret if TLS cert verification also fails for custom image scans
-If you believe this registry uses a custom cert and that was set using one of the cert secrets:
+✅ Now retry pod or CDS install
 
-bash
-Copy
-Edit
-oc get secret cdp-private-installer-docker-cert -n xyz -o yaml | \
-sed 's/namespace: xyz/namespace: nacho-cds/' | oc apply -f -
-🔹 5. Delete and Re-run or Re-deploy your pod in nacho-cds
-bash
-Copy
 Edit
 oc delete pod <pod-name> -n nacho-cds
 Or re-run:
