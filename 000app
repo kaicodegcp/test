@@ -1,0 +1,7 @@
+oc run test-cer-a \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215 \
+  --restart=Never -it --rm -n xyz
+
+oc run test-cer-a \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/rhel8/postgresql-10:1-215 \
+  --restart=Never -it --rm -n xyz
