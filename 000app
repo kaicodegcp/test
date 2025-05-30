@@ -146,3 +146,106 @@ oc run test-cer-a \
   --env=POSTGRESQL_PASSWORD=admin123 \
   --env=POSTGRESQL_DATABASE=testdb \
   --restart=Never -it -n nacho-cds
+
+
+
+
+------------------------------------------------------------------
+
+
+Perfect — thanks for the clarity.
+
+✅ Goal:
+You want to extract the working domain.crt from the xyz namespace's secrets or configmaps (in the OpenShift cluster itself), and reuse it in the nacho-cds namespace without pulling it from the server filesystem.
+
+✅ Solution: Extract domain.crt from xyz cluster and apply it in nacho-cds
+We’ll:
+
+Identify which secret/configmap in xyz contains the cert
+
+Extract the .crt file content
+
+Recreate a ConfigMap in nacho-cds with that content
+
+Patch the OpenShift proxy to trust it
+
+🔍 Step 1: Identify the correct cert-containing Secret or ConfigMap in xyz
+From your earlier screenshots, the most likely candidates are:
+
+cdp-private-installer-docker-cert (Secret)
+
+cdp-pvc-truststore (ConfigMap)
+
+Try inspecting one of them, e.g.:
+
+bash
+Copy
+Edit
+oc get secret cdp-private-installer-docker-cert -n xyz -o yaml
+Or:
+
+bash
+Copy
+Edit
+oc get configmap cdp-pvc-truststore -n xyz -o yaml
+Look for fields like .crt, .pem, or base64-encoded cert blocks under data:.
+
+🧾 Step 2: Extract the cert content
+If it’s a Secret, use:
+
+bash
+Copy
+Edit
+oc get secret cdp-private-installer-docker-cert -n xyz -o jsonpath="{.data['domain\.crt']}" | base64 -d > /tmp/domain.crt
+Or for a ConfigMap:
+
+bash
+Copy
+Edit
+oc get configmap cdp-pvc-truststore -n xyz -o jsonpath="{.data['domain\.crt']}" > /tmp/domain.crt
+Replace 'domain\.crt' with the actual key name if different (e.g., ca.crt, sd-wv58-kflz.nam.nsroot.net.crt, etc.)
+
+📦 Step 3: Create the ConfigMap in nacho-cds
+Now that you have the correct /tmp/domain.crt, run:
+
+bash
+Copy
+Edit
+oc create configmap registry-ca-cert \
+  --from-file=sd-wv58-kflz.nam.nsroot.net.crt=/tmp/domain.crt \
+  -n openshift-config
+🔧 Step 4: Patch OpenShift to trust the cert
+bash
+Copy
+Edit
+oc patch proxy/cluster \
+  --type=merge \
+  -p '{"spec":{"trustedCA":{"name":"registry-ca-cert"}}}'
+🔄 Step 5: Retry your image pull
+Wait ~2 minutes for propagation, or restart the pod:
+
+bash
+Copy
+Edit
+oc delete pod test-cer-a -n nacho-cds
+Then rerun the test pod.
+
+✅ Done
+This method uses only oc and cluster resources — no need to touch /etc/pki or Docker registry hosts.
+
+Let me know the actual key name (domain.crt or something else) if you hit a jsonpath error and I’ll help adjust the command.
+
+
+
+
+
+
+
+
+
+
+Tools
+
+
+
+
