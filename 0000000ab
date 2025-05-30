@@ -1,0 +1,88 @@
+Step 1: Remove any conflicting certs in openshift-config
+bash
+Copy
+Edit
+oc delete configmap registry-certs -n openshift-config
+Also, check and remove any other outdated or alternate certs:
+
+bash
+Copy
+Edit
+oc get configmap -n openshift-config
+Delete any custom cert ConfigMap (e.g. registry-ca-cert, my-registry-cert, etc.) that could override:
+
+bash
+Copy
+Edit
+oc delete configmap my-registry-cert -n openshift-config
+✅ Step 2: Recreate ConfigMap with only the correct old domain.crt
+Make sure this is the cert used during docker image push to the registry and works on xyz cluster.
+
+bash
+Copy
+Edit
+oc create configmap registry-certs \
+  --from-file=sd-wv58-kflz.nam.nsroot.net.crt=/root/domain.crt \
+  -n openshift-config
+✅ Step 3: Patch global trust to use only registry-certs
+bash
+Copy
+Edit
+oc patch proxy/cluster --type=merge \
+  -p '{"spec":{"trustedCA":{"name":"registry-certs"}}}'
+✅ Step 4: Confirm patch is applied
+bash
+Copy
+Edit
+oc get proxy/cluster -o yaml | grep trustedCA
+Ensure it reflects:
+
+yaml
+Copy
+Edit
+trustedCA:
+  name: registry-certs
+✅ Step 5: Force all nodes to refresh trust
+You cannot use oc delete machine if you're not using the openshift-machine-api.
+
+Instead, use this workaround to force re-pull images from registry with updated trust:
+
+Reboot nodes manually if you have access.
+OR
+
+Force re-pull by removing the pod and making a minimal spec change:
+
+bash
+Copy
+Edit
+oc delete pod test-cert-a -n nacho-cds
+oc run test-cert-a --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215 \
+  --env=POSTGRESQL_USER=admin \
+  --env=POSTGRESQL_PASSWORD=admin123 \
+  --env=POSTGRESQL_DATABASE=testdb \
+  --restart=Never -n nacho-cds
+✅ Step 6: Confirm certs are respected via curl on the node
+From bdgtr076x11t1 (assuming it's shared or has certs installed), run:
+
+bash
+Copy
+Edit
+curl -v --cacert /etc/pki/ca-trust/source/anchors/domain.crt https://sd-wv58-kflz.nam.nsroot.net:5000/v2/
+✅ Optional Debug
+To verify if image is being blocked by cert:
+
+bash
+Copy
+Edit
+oc logs <pod-name> -n nacho-cds
+oc describe pod test-cert-a -n nacho-cds
+Look for x509: certificate signed by unknown authority → indicates trust issue.
+
+Let me know once done or if you want help generating a YAML version of these updates.
+
+
+
+
+
+
+
