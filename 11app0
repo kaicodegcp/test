@@ -12,3 +12,21 @@ Self-managed infrastructure for flexibility
 
 Next Steps:
 Focus on configuring CDS for lab environments and expanding adoption across use cases in the next 30 days.
+
+
+Who did what:
+The EAP Strategic Solutions team validated and upgraded the Citiconda parcel to citiconda39-9.9.46.parcel, resolving prior issues with critical Python modules (oracledb, gssapi, and paramiko).
+
+What was achieved:
+Successfully tested and confirmed compatibility of required modules using the new parcel version, ensuring smoother runtime support for secure and database-integrated workloads.
+
+Benefit to the team:
+
+Eliminates environment setup errors
+
+Accelerates job readiness for data and analytics teams
+
+Ensures consistent and reliable Python runtime for CDS workloads on OpenShift
+
+Next steps:
+Roll out the updated parcel across environments and document the module testing steps for broader team adoption.
