@@ -344,4 +344,28 @@ Edit
 ...
 -----END CERTIFICATE-----
 
+---------------------------------
 
+Let's Find the Actual Key
+Run this to list all keys inside the secret:
+
+bash
+Copy
+Edit
+oc get secret cdp-private-installer-docker-cert -n xyz -o json | jq -r '.data | keys[]'
+Expected output (example):
+
+pgsql
+Copy
+Edit
+domain.crt
+tls.crt
+sd-wv58-kflz.nam.nsroot.net.crt
+✅ Then extract using the correct key:
+Once you know the real key (e.g., sd-wv58-kflz.nam.nsroot.net.crt), run:
+
+bash
+Copy
+Edit
+oc get secret cdp-private-installer-docker-cert -n xyz \
+  -o jsonpath="{.data['sd-wv58-kflz.nam.nsroot.net\.crt']}" | base64 -d > /tmp/domain.crt
