@@ -16,3 +16,47 @@ oc run test-cer-a \
 
 --env=POSTGRESQL_MAX_CONNECTIONS=200
 --env=POSTGRESQL_SHARED_BUFFERS=64MB
+
+
+
+Copy Docker Pull Secret
+bash
+Copy
+Edit
+oc get secret cdp-private-installer-docker-pull-secret -n xyz -o yaml | \
+sed 's/namespace: xyz/namespace: nacho-cds/' | oc apply -f -
+🔹 2. Link Docker Pull Secret to Service Account
+bash
+Copy
+Edit
+oc secrets link default cdp-private-installer-docker-pull-secret --for=pull -n nacho-cds
+🔹 3. Copy TLS ConfigMap (Truststore, if needed for pod TLS chain)
+bash
+Copy
+Edit
+oc get configmap cdp-pvc-truststore -n xyz -o yaml | \
+sed 's/namespace: xyz/namespace: nacho-cds/' | oc apply -f -
+🔹 4. (Optional) Copy cert secret if TLS cert verification also fails for custom image scans
+If you believe this registry uses a custom cert and that was set using one of the cert secrets:
+
+bash
+Copy
+Edit
+oc get secret cdp-private-installer-docker-cert -n xyz -o yaml | \
+sed 's/namespace: xyz/namespace: nacho-cds/' | oc apply -f -
+🔹 5. Delete and Re-run or Re-deploy your pod in nacho-cds
+bash
+Copy
+Edit
+oc delete pod <pod-name> -n nacho-cds
+Or re-run:
+
+bash
+Copy
+Edit
+oc run test-cer-a \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215 \
+  --env=POSTGRESQL_USER=admin \
+  --env=POSTGRESQL_PASSWORD=admin123 \
+  --env=POSTGRESQL_DATABASE=testdb \
+  --restart=Never -it -n nacho-cds
