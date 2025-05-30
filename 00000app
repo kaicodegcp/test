@@ -1,0 +1,65 @@
+inal Steps Using /var/tmp/domain.crt
+Here’s the corrected and simplified version for your case:
+
+🔁 1. Copy it to system trust (this already exists on bdgtr076x11t1)
+bash
+Copy
+Edit
+cp /var/tmp/domain.crt /etc/pki/ca-trust/source/anchors/domain.crt
+🔁 2. Update system trust
+bash
+Copy
+Edit
+update-ca-trust extract
+You've already done this and validated it works with:
+
+bash
+Copy
+Edit
+curl -v --cacert /var/tmp/domain.crt https://sd-wv58-kflz.nam.nsroot.net:5000/v2/ -u admin:admin
+✅ You saw HTTP/2 200 OK — perfect.
+
+🔁 3. Create or update ConfigMap with the working cert
+If you want to overwrite any previous config cleanly:
+
+bash
+Copy
+Edit
+oc delete configmap registry-certs -n openshift-config
+
+oc create configmap registry-certs \
+  --from-file=sd-wv58-kflz.nam.nsroot.net=/var/tmp/domain.crt \
+  -n openshift-config
+🔁 4. Patch proxy with this configmap
+bash
+Copy
+Edit
+oc patch proxy/cluster \
+  --type=merge \
+  -p '{"spec":{"trustedCA":{"name":"registry-certs"}}}'
+✅ You’ve already done this — just reconfirm after ConfigMap recreation.
+
+🔁 5. Watch rollout to nodes
+bash
+Copy
+Edit
+watch oc get mcp
+Wait until you see:
+
+vbnet
+Copy
+Edit
+UPDATED: True
+DEGRADED: False
+🔁 6. Re-run test pod in nacho-cds
+bash
+Copy
+Edit
+oc delete pod test-cer-a -n nacho-cds
+
+oc run test-cer-a \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215 \
+  --env=POSTGRESQL_USER=admin \
+  --env=POSTGRESQL_PASSWORD=admin123 \
+  --env=POSTGRESQL_DATABASE=testdb \
+  --restart=Never -it -n nacho-cds
