@@ -369,3 +369,45 @@ Copy
 Edit
 oc get secret cdp-private-installer-docker-cert -n xyz \
   -o jsonpath="{.data['sd-wv58-kflz.nam.nsroot.net\.crt']}" | base64 -d > /tmp/domain.crt
+
+
+
+\\\\\\\\\\\\\\\\\\\\\
+
+Final Working Command to Extract Your TLS Cert
+bash
+Copy
+Edit
+oc get secret cdp-private-installer-docker-cert -n xyz \
+  -o jsonpath="{.data.certificate}" | base64 -d > /tmp/domain.crt
+✅ Confirm the cert content:
+bash
+Copy
+Edit
+cat /tmp/domain.crt
+You should now see:
+
+css
+Copy
+Edit
+-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----
+✅ Then Move to nacho-cds Cluster and Apply:
+bash
+Copy
+Edit
+# Transfer it to nacho-cds admin server
+scp /tmp/domain.crt root@nacho-cds-admin:/tmp/domain.crt
+
+# Log in to nacho-cds admin and run:
+oc create configmap registry-ca-cert \
+  --from-file=sd-wv58-kflz.nam.nsroot.net.crt=/tmp/domain.crt \
+  -n openshift-config
+
+oc patch proxy/cluster \
+  --type=merge \
+  -p '{"spec":{"trustedCA":{"name":"registry-ca-cert"}}}'
+
+# Finally restart pod or wait 2–3 mins
+oc delete pod test-cer-a -n nacho-cds
