@@ -78,3 +78,71 @@ oc run test-cer-a \
   --env=POSTGRESQL_PASSWORD=admin123 \
   --env=POSTGRESQL_DATABASE=testdb \
   --restart=Never -it -n nacho-cds
+
+
+
+
+=======================================================
+
+
+Step-by-Step Fix
+✅ STEP 1: Extract the domain certificate from xyz cluster
+On your xyz cluster (where it works):
+
+bash
+Copy
+Edit
+oc get configmap openshift-service-ca.crt -n xyz -o yaml > service-ca-xyz.yaml
+OR if you installed your own domain cert manually to trust the Docker registry, then find it (like domain.crt, registry.crt, etc.)
+
+If you’re not sure, check this path on xyz admin host:
+
+bash
+Copy
+Edit
+cat /etc/pki/ca-trust/source/anchors/domain.crt
+Then copy that file securely to your nacho-cds admin node, e.g.:
+
+bash
+Copy
+Edit
+scp /etc/pki/ca-trust/source/anchors/domain.crt root@nacho-cds-admin:/tmp/
+✅ STEP 2: Create the cert ConfigMap in nacho-cds
+Now, on the nacho-cds cluster:
+
+bash
+Copy
+Edit
+oc create configmap registry-ca-cert \
+  --from-file=sd-wv58-kflz.nam.nsroot.net.crt=/tmp/domain.crt \
+  -n openshift-config
+Make sure the filename matches the registry hostname, as expected by OpenShift.
+
+✅ STEP 3: Patch the OpenShift proxy to trust it
+bash
+Copy
+Edit
+oc patch proxy/cluster \
+  --type=merge \
+  -p '{"spec":{"trustedCA":{"name":"registry-ca-cert"}}}'
+✅ STEP 4: Allow time to propagate or reboot nodes (if urgent)
+You can wait a few minutes OR restart nodes (optional but faster):
+
+bash
+Copy
+Edit
+oc debug node/<node-name>
+chroot /host
+systemctl restart crio
+✅ STEP 5: Recreate the pod to test pull
+bash
+Copy
+Edit
+oc delete pod test-cer-a -n nacho-cds
+
+oc run test-cer-a \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215 \
+  --env=POSTGRESQL_USER=admin \
+  --env=POSTGRESQL_PASSWORD=admin123 \
+  --env=POSTGRESQL_DATABASE=testdb \
+  --restart=Never -it -n nacho-cds
