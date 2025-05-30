@@ -84,5 +84,36 @@ Let me know once done or if you want help generating a YAML version of these upd
 
 
 
+==========
+Step-by-step to Manually Test Pulling Vault Image in nacho-cds
+1. Create a test pod using the working Vault image
+bash
+Copy
+Edit
+oc run vault-test \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2 \
+  --restart=Never -n nacho-cds
+2. Describe the pod for pull errors
+bash
+Copy
+Edit
+oc describe pod vault-test -n nacho-cds
+Check the Events section — if TLS fails, it will show the x509 error.
+
+3. If it fails again: re-confirm cert trust by curl inside a debug pod
+If Vault fails to pull, run this (requires tools image):
+
+bash
+Copy
+Edit
+oc run curl-debug --rm -i --tty --image=registry.redhat.io/rhel8/support-tools --restart=Never -n nacho-cds -- bash
+Inside:
+
+bash
+Copy
+Edit
+curl -v --cacert /etc/pki/ca-trust/source/anchors/domain.crt https://sd-wv58-kflz.nam.nsroot.net:5000/v2/
+👉 If this fails with the same TLS error, we’ll know the trust chain still isn’t correctly picked up in all worker nodes.
+
 
 
