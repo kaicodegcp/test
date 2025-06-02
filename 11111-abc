@@ -230,3 +230,52 @@ Edit
 oc get pods -n nacho
 oc logs vault-test-ok -n nacho
 
+
+
+
+=============
+
+Final Fix — Patch the Pod with securityContext (Explicit Capabilities)
+To force-enable this, test with a YAML that grants the needed capabilities explicitly.
+
+Create this pod YAML:
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vault-test-fixed
+  namespace: nacho
+spec:
+  containers:
+  - name: vault
+    image: sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+    securityContext:
+      privileged: true
+      capabilities:
+        add:
+          - SETFCAP
+  restartPolicy: Never
+  serviceAccountName: default
+Then apply it:
+
+bash
+Copy
+Edit
+oc apply -f vault-test-fixed.yaml
+🔍 Validate:
+bash
+Copy
+Edit
+oc get pods -n nacho
+oc logs vault-test-fixed -n nacho
+🔁 If this works
+Then Cloudera CDS vault pods must be patched to inherit these capabilities — but normally privileged SCC is enough. If not, verify SCC assignment is taking effect:
+
+bash
+Copy
+Edit
+oc get pod vault-test-fixed -n nacho -o jsonpath='{.spec.securityContext}'
+oc describe pod vault-test-fixed -n nacho | grep -i scc
