@@ -315,3 +315,9 @@ Copy
 Edit
 oc delete pod vault-0 -n nacho
 oc apply -f vault-nacho.yaml
+
+
+==============================
+
+mkdir -p /mnt/test-nfs
+mount -t nfs gtdvnasapp0004.wlb2.nam.nsroot.net:/trident_pvc_26dcfdb0_9e62_4d25_a1a7_6a913cc6a2f5 /mnt/test-nfs
