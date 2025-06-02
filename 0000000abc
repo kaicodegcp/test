@@ -1,0 +1,66 @@
+olution A: Copy domain.crt to each OpenShift node
+On every worker node, run:
+
+bash
+Copy
+Edit
+mkdir -p /etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000
+cp /opt/registry/certs/domain.crt /etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000/ca.crt
+Then restart crio or docker (depending on what you use):
+
+bash
+Copy
+Edit
+systemctl restart crio
+# or for Docker:
+# systemctl restart docker
+📝 If /opt/registry/certs/domain.crt is only on one node, scp it to the others first.
+
+✅ [2] Image pull secret missing/invalid
+Error:
+
+pgsql
+Copy
+Edit
+Unable to retrieve some image pull secrets (my-registry-cert)
+Your command:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default -p '{"imagePullSecrets": [{"name": "my-registry-cert"}]}' -n nacho
+That’s correct syntax, but the ConfigMap my-registry-cert is not a valid secret — it must be a docker-registry secret, not a ConfigMap.
+
+🔧 Solution B: Create a proper image pull secret
+Delete the old ConfigMap if not needed:
+
+bash
+Copy
+Edit
+oc delete configmap my-registry-cert -n nacho
+Now create a pull secret:
+
+bash
+Copy
+Edit
+oc create secret docker-registry my-registry-secret \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=unused@example.com \
+  -n nacho
+Patch the default service account:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default \
+  -p '{"imagePullSecrets":[{"name":"my-registry-secret"}]}' \
+  -n nacho
+✅ Then re-deploy the pod:
+bash
+Copy
+Edit
+oc delete pod vault-test3 -n nacho
+Let OpenShift pull again using the correct cert and imagePullSecret.
+
