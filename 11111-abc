@@ -76,3 +76,95 @@ bash
 Copy
 Edit
 oc logs statefulset/vault -n nacho
+
+
+
+==========================
+
+What You Have Already Done Correctly
+Registry Secret Patched to Default ServiceAccount in nacho
+
+You patched default with my-registry-secret using:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default \
+  -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}' -n nacho
+Verified via:
+
+bash
+Copy
+Edit
+oc get sa default -n nacho -o yaml | grep imagePullSecrets -A2
+TLS Certificate Re-created and Patched into openshift-config
+
+You re-created the ConfigMap:
+
+bash
+Copy
+Edit
+oc create configmap registry-certs --from-file=... -n openshift-config --dry-run=client -o yaml | oc apply -f -
+Patched cluster-wide trusted CAs:
+
+bash
+Copy
+Edit
+oc patch image.config.openshift.io/cluster \
+  --type=merge \
+  -p '{"spec":{"additionalTrustedCA":{"name":"registry-certs"}}}'
+Manual Pod vault-test-ok in nacho
+
+You ran this and it succeeded:
+
+bash
+Copy
+Edit
+oc run vault-test-ok --image=sd-wv58-kflz.nam.nsroot.net:5000/... --restart=Never -n nacho
+Verified via describe and logs
+
+Pod successfully pulled image, started, and ran.
+
+Status showed Started container vault-test-ok.
+
+❌ CDS Wizard Still Fails
+Even though manual vault-test-ok pod succeeded, the CDS installation wizard is failing at:
+
+vbnet
+Copy
+Edit
+Vault was not able to start.
+Cause: incorrect Docker registry settings or rook/ceph volume claims
+✅ Conclusion
+You do not need to run manual patches again. Your setup is good. The issue now is Cloudera's internal Helm chart logic — likely still pointing to stale values or failed jobs from a prior attempt.
+
+🔧 Recommended Next Steps
+Clean the Namespace nacho Completely
+Cloudera's CDS wizard is sensitive to partial state from failed attempts. Clean and retry:
+
+bash
+Copy
+Edit
+oc delete all --all -n nacho
+oc delete pvc --all -n nacho
+oc delete secrets --all -n nacho
+oc delete configmap --all -n nacho
+oc delete serviceaccount vault-sa vault-auth drs-admin -n nacho --ignore-not-found
+Retry Wizard in nacho
+
+Make sure:
+
+vault-0 pod is created automatically (do not run it manually again).
+
+TLS and secret setup already exist (you've done it).
+
+Optional: Try a New Namespace (if error persists)
+
+Create and pre-patch new namespace:
+
+bash
+Copy
+Edit
+oc create ns nacho2
+oc patch serviceaccount default -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}' -n nacho2
+
