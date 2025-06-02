@@ -279,3 +279,39 @@ Copy
 Edit
 oc get pod vault-test-fixed -n nacho -o jsonpath='{.spec.securityContext}'
 oc describe pod vault-test-fixed -n nacho | grep -i scc
+
+
+
+
+============
+
+Update the vault-nacho.yaml to use the correct secret:
+
+yaml
+Copy
+Edit
+imagePullSecrets:
+  - name: my-registry-secret
+Or if docker-creds is the correct one, make sure it exists:
+
+bash
+Copy
+Edit
+oc get secret docker-creds -n nacho
+If it doesn't exist:
+
+bash
+Copy
+Edit
+oc create secret docker-registry docker-creds \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  -n nacho
+Then reapply the pod:
+
+bash
+Copy
+Edit
+oc delete pod vault-0 -n nacho
+oc apply -f vault-nacho.yaml
