@@ -195,3 +195,38 @@ Edit
 oc adm policy add-scc-to-user anyuid -z vault-sa -n nacho
 
 
+-----------------
+
+Final Fix: Use privileged SCC
+Run:
+
+bash
+Copy
+Edit
+oc adm policy add-scc-to-user privileged -z default -n nacho
+And also for vault-sa if needed:
+
+bash
+Copy
+Edit
+oc adm policy add-scc-to-user privileged -z vault-sa -n nacho
+🔁 Then:
+Delete the test pod again and recreate:
+
+bash
+Copy
+Edit
+oc delete pod vault-test-ok -n nacho
+
+oc run vault-test-ok \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 \
+  --restart=Never -n nacho
+🔍 What to Expect
+Now when you run:
+
+bash
+Copy
+Edit
+oc get pods -n nacho
+oc logs vault-test-ok -n nacho
+
