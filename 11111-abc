@@ -1,0 +1,78 @@
+Let’s fix it in the nacho namespace step by step:
+This is a known Cloudera CDS vault failure, when the vault image cannot be pulled because the newly created ServiceAccounts do not have access to your registry.
+
+🔧 Step-by-Step Fix for CDS Install Failure in Namespace nacho
+Step 1: Patch the default ServiceAccount
+Since vault-0 starts from the default SA, attach your imagePullSecret:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default \
+  -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}' \
+  -n nacho
+Step 2: Patch all service accounts that CDS installer will create
+bash
+Copy
+Edit
+for sa in vault-sa vault-auth drs-admin; do
+  oc patch serviceaccount "$sa" \
+    -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}' \
+    -n nacho
+done
+Verify:
+
+bash
+Copy
+Edit
+oc get sa default vault-sa vault-auth drs-admin -n nacho -o yaml | grep -A 2 imagePullSecrets
+You should see:
+
+yaml
+Copy
+Edit
+imagePullSecrets:
+- name: my-registry-secret
+Step 3: Patch OpenShift global trust with your registry cert
+Ensure your cert is still available and trusted:
+
+bash
+Copy
+Edit
+oc create configmap registry-certs \
+  --from-file=sd-wv58-kflz.nam.nsroot.net..5000=/opt/registry/certs/domain.crt \
+  -n openshift-config --dry-run=client -o yaml | oc apply -f -
+
+oc patch image.config.openshift.io/cluster \
+  --type=merge \
+  -p '{"spec":{"additionalTrustedCA":{"name":"registry-certs"}}}'
+✅ Step 4: Retry the Cloudera CDS Install Wizard
+Go to the wizard screen for namespace nacho
+
+Click Retry
+
+Vault pod should now succeed because the image pull secret is valid and certs are trusted
+
+🧪 Optional: Pre-Test Before Retrying Wizard
+To confirm fix before retrying install, run:
+
+bash
+Copy
+Edit
+oc run vault-test-ok \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 \
+  --restart=Never -n nacho
+Then check:
+
+bash
+Copy
+Edit
+oc get pod vault-test-ok -n nacho
+It should go to Completed or Running. That confirms everything is working.
+
+Let me know once you try this. If vault still fails, we can review specific vault-0 logs with:
+
+bash
+Copy
+Edit
+oc logs statefulset/vault -n nacho
