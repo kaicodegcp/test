@@ -35,3 +35,55 @@ Copy
 Edit
 oc delete configmap docker-registry-cert -n openshift-config
 oc delete secret my-registry-secret -n nacho
+
+
+
+
+
+
+
+==================
+
+
+Fix Now
+Re-upload the correct working domain.crt to the host from your known location (e.g. /opt/registry/certs/domain.crt on bdgtr076x11t1):
+
+bash
+Copy
+Edit
+oc debug node/dfgtr040x12h5.nam.nsroot.net
+Inside debug shell:
+
+bash
+Copy
+Edit
+chroot /host mkdir -p /etc/pki/ca-trust/source/anchors
+cp /host/opt/registry/certs/domain.crt /host/etc/pki/ca-trust/source/anchors/domain.crt
+Then copy to Docker certs path again:
+
+bash
+Copy
+Edit
+mkdir -p /host/etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000
+cp /host/etc/pki/ca-trust/source/anchors/domain.crt /host/etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000/ca.crt
+Update trust and restart CRI-O:
+
+bash
+Copy
+Edit
+chroot /host update-ca-trust extract
+chroot /host systemctl restart crio
+Exit debug pod and retry vault
+
+bash
+Copy
+Edit
+exit
+oc delete pod vault-test -n nacho
+✅ Next Step
+Once that’s done and pod is recreated, run:
+
+bash
+Copy
+Edit
+oc get pods -n nacho -w
