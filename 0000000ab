@@ -94,3 +94,94 @@ Copy
 Edit
 oc delete pod vault-0 -n nacho-cds
 Image pull should succeed without TLS error.
+
+
+
+
+---------------------
+
+f SSH is NOT allowed:
+Use the internal Cloudera Vault image for DaemonSet cert fix.
+
+✔ Action:
+Update your trust-cert-daemonset.yaml to use this working image:
+
+yaml
+Copy
+Edit
+image: sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0
+Re-apply:
+
+bash
+Copy
+Edit
+oc delete ds cert-installer -n openshift-config
+oc apply -f trust-cert-daemonset.yaml
+This will:
+
+Copy the cert to /etc/docker/certs.d/...
+
+Add cert to /etc/pki/ca-trust/source/anchors/
+
+Run update-ca-trust extract
+
+Restart crio on all nodes
+
+🔐 2. Ensure Pull Secret is Set for Image Authentication
+✔ Action:
+If your registry requires auth (which it does), create a Docker registry secret:
+
+bash
+Copy
+Edit
+oc create secret docker-registry my-registry-secret \
+  --docker-server=sd-wv58-kflz.nam.nsroot.net:5000 \
+  --docker-username=admin \
+  --docker-password=admin \
+  --docker-email=unused@example.com \
+  -n nacho
+Then patch the service account:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default -p '{"imagePullSecrets":[{"name":"my-registry-secret"}]}' -n nacho
+Repeat for nacho-cds if needed.
+
+🧪 3. Deploy the vault-test Pod
+✔ Action:
+bash
+Copy
+Edit
+oc run vault-test \
+  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2-r0 \
+  --restart=Never \
+  -n nacho
+If you're using nacho-cds namespace instead:
+
+bash
+Copy
+Edit
+oc run vault-test --image=... -n nacho-cds
+🔁 4. Validate Pod
+✔ Action:
+bash
+Copy
+Edit
+oc get pods -n nacho -w
+Wait for STATUS to become Completed or Running.
+
+If needed:
+
+bash
+Copy
+Edit
+oc describe pod vault-test -n nacho
+✅ Optional Clean-Up
+After success:
+
+bash
+Copy
+Edit
+oc delete ds cert-installer -n openshift-config
+oc delete configmap docker-registry-cert -n openshift-config
