@@ -1,226 +1,96 @@
-Step 1: Remove any conflicting certs in openshift-config
+Step-by-Step Deployment
+1. Create a ConfigMap with the domain.crt
 bash
 Copy
 Edit
-oc delete configmap registry-certs -n openshift-config
-Also, check and remove any other outdated or alternate certs:
-
-bash
-Copy
-Edit
-oc get configmap -n openshift-config
-Delete any custom cert ConfigMap (e.g. registry-ca-cert, my-registry-cert, etc.) that could override:
-
-bash
-Copy
-Edit
-oc delete configmap my-registry-cert -n openshift-config
-✅ Step 2: Recreate ConfigMap with only the correct old domain.crt
-Make sure this is the cert used during docker image push to the registry and works on xyz cluster.
-
-bash
-Copy
-Edit
-oc create configmap registry-certs \
-  --from-file=sd-wv58-kflz.nam.nsroot.net.crt=/root/domain.crt \
+oc create configmap docker-registry-cert \
+  --from-file=domain.crt=/opt/registry/certs/domain.crt \
   -n openshift-config
-✅ Step 3: Patch global trust to use only registry-certs
-bash
-Copy
-Edit
-oc patch proxy/cluster --type=merge \
-  -p '{"spec":{"trustedCA":{"name":"registry-certs"}}}'
-✅ Step 4: Confirm patch is applied
-bash
-Copy
-Edit
-oc get proxy/cluster -o yaml | grep trustedCA
-Ensure it reflects:
+2. Create a DaemonSet YAML to distribute the cert
+Save the following as trust-cert-daemonset.yaml:
 
 yaml
 Copy
 Edit
-trustedCA:
-  name: registry-certs
-✅ Step 5: Force all nodes to refresh trust
-You cannot use oc delete machine if you're not using the openshift-machine-api.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: cert-installer
+  namespace: openshift-config
+spec:
+  selector:
+    matchLabels:
+      name: cert-installer
+  template:
+    metadata:
+      labels:
+        name: cert-installer
+    spec:
+      hostPID: true
+      containers:
+      - name: install-cert
+        image: registry.access.redhat.com/ubi8/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            set -ex
+            cp /certs/domain.crt /host/etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000/ca.crt
+            cp /certs/domain.crt /host/etc/pki/ca-trust/source/anchors/domain.crt
+            chroot /host update-ca-trust extract
+            chroot /host systemctl restart crio
+            sleep 300
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: certs
+          mountPath: /certs
+        - name: host-etc-docker
+          mountPath: /host/etc/docker
+        - name: host-etc-pki
+          mountPath: /host/etc/pki
+        - name: host-sysroot
+          mountPath: /host
+      volumes:
+      - name: certs
+        configMap:
+          name: docker-registry-cert
+      - name: host-etc-docker
+        hostPath:
+          path: /etc/docker
+      - name: host-etc-pki
+        hostPath:
+          path: /etc/pki
+      - name: host-sysroot
+        hostPath:
+          path: /
+      tolerations:
+      - operator: Exists
+      restartPolicy: Always
+3. Apply the DaemonSet
+bash
+Copy
+Edit
+oc apply -f trust-cert-daemonset.yaml
+It will run once on each node, copy the cert, restart crio, and wait.
 
-Instead, use this workaround to force re-pull images from registry with updated trust:
-
-Reboot nodes manually if you have access.
-OR
-
-Force re-pull by removing the pod and making a minimal spec change:
+4. Verify and Cleanup
+✅ Check certs:
+bash
+Copy
+Edit
+oc debug node/<node-name>
+chroot /host ls /etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000/
+✅ Then delete DaemonSet:
+bash
+Copy
+Edit
+oc delete ds cert-installer -n openshift-config
+oc delete configmap docker-registry-cert -n openshift-config
+✅ After That
+Re-deploy your failing pod:
 
 bash
 Copy
 Edit
-oc delete pod test-cert-a -n nacho-cds
-oc run test-cert-a --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera/redhat8/postgresql-10:1-215 \
-  --env=POSTGRESQL_USER=admin \
-  --env=POSTGRESQL_PASSWORD=admin123 \
-  --env=POSTGRESQL_DATABASE=testdb \
-  --restart=Never -n nacho-cds
-✅ Step 6: Confirm certs are respected via curl on the node
-From bdgtr076x11t1 (assuming it's shared or has certs installed), run:
-
-bash
-Copy
-Edit
-curl -v --cacert /etc/pki/ca-trust/source/anchors/domain.crt https://sd-wv58-kflz.nam.nsroot.net:5000/v2/
-✅ Optional Debug
-To verify if image is being blocked by cert:
-
-bash
-Copy
-Edit
-oc logs <pod-name> -n nacho-cds
-oc describe pod test-cert-a -n nacho-cds
-Look for x509: certificate signed by unknown authority → indicates trust issue.
-
-Let me know once done or if you want help generating a YAML version of these updates.
-
-
-
-
-
-==========
-Step-by-step to Manually Test Pulling Vault Image in nacho-cds
-1. Create a test pod using the working Vault image
-bash
-Copy
-Edit
-oc run vault-test \
-  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2 \
-  --restart=Never -n nacho-cds
-2. Describe the pod for pull errors
-bash
-Copy
-Edit
-oc describe pod vault-test -n nacho-cds
-Check the Events section — if TLS fails, it will show the x509 error.
-
-3. If it fails again: re-confirm cert trust by curl inside a debug pod
-If Vault fails to pull, run this (requires tools image):
-
-bash
-Copy
-Edit
-oc run curl-debug --rm -i --tty --image=registry.redhat.io/rhel8/support-tools --restart=Never -n nacho-cds -- bash
-Inside:
-
-bash
-Copy
-Edit
-curl -v --cacert /etc/pki/ca-trust/source/anchors/domain.crt https://sd-wv58-kflz.nam.nsroot.net:5000/v2/
-👉 If this fails with the same TLS error, we’ll know the trust chain still isn’t correctly picked up in all worker nodes.
-
-
-===================
-
-
-Step-by-Step Fix (For nacho-cds cluster):
-1. 🧹 Clean up any wrong or stale cert ConfigMaps
-bash
-Copy
-Edit
-oc delete configmap registry-ca-cert registry-certs my-registry-cert \
-  -n openshift-config --ignore-not-found
-2. ✅ Re-create correct configmap using known working cert (same as xyz)
-Assuming you have the correct cert file as /root/domain.crt (used to push to Docker):
-
-bash
-Copy
-Edit
-oc create configmap registry-certs \
-  --from-file=sd-wv58-kflz.nam.nsroot.net=/root/domain.crt \
-  -n openshift-config
-You should see:
-
-bash
-Copy
-Edit
-configmap/registry-certs created
-3. ✅ Patch the cluster to trust the registry cert
-bash
-Copy
-Edit
-oc patch image.config.openshift.io/cluster \
-  --type=merge \
-  -p '{"spec":{"additionalTrustedCA":{"name":"registry-certs"}}}'
-You should see:
-
-bash
-Copy
-Edit
-image.config.openshift.io/cluster patched
-4. 🔁 Wait for MachineConfigPool to apply the changes
-bash
-Copy
-Edit
-watch oc get mcp
-Wait for both worker and master MCPs to finish updating (UPDATING=false, DEGRADED=false).
-
-5. ✅ Retry pod creation
-bash
-Copy
-Edit
-oc run vault-test \
-  --image=sd-wv58-kflz.nam.nsroot.net:5000/cdp-private/cloudera_thirdparty/vault:1.17.2 \
-  --restart=Never -n nacho-cds
-Then describe the pod:
-
-bash
-Copy
-Edit
-oc describe pod vault-test -n nacho-cds
-If the cert is trusted correctly, it should now pull the image successfully and go to Running.
-
-🧠 Recap
-Same Docker registry + Same domain.crt ✅
-
-Working in xyz, failing in nacho-cds = problem in node trust store
-
-Fixing trust via registry-certs in openshift-config is the only cluster-supported way without ssh or crio access.
-
-Let me know once MCP rollout completes or if you want help checking current cert inside a pod (via curl).
-
-
-
-
-
-
-You said:
-can i run crio command on bdgtr076x11t1
-
-
-ChatGPT said:
-No — you cannot and should not run crio commands on bdgtr076x11t1 unless that server itself is an OpenShift worker node (i.e., it runs pods and is part of the Kubernetes cluster node pool).
-
-🔍 Why?
-crio is the container runtime only on worker nodes in OpenShift.
-
-bdgtr076x11t1 is your admin/control host (from where you run oc, manage kubectl, and deploy stuff) — not a node in the OpenShift cluster.
-
-Running crio commands there will not affect the actual image pulling/trust behavior of the real nodes like dfgtr040x12h5, dfgtr162x01t2, etc.
-
-✅ Where does TLS trust matter for image pull?
-It must be configured correctly:
-
-Component	TLS cert must be trusted?	How to trust it
-Docker Registry Host	✅ Yes	Use domain.crt in /etc/docker/certs.d or system trust store
-OpenShift Worker Nodes	✅ Yes	Patch image.config.openshift.io/cluster with registry-certs
-Admin Host (bdgtr076x11t1)	❌ No (doesn't pull images)	Only needs trust for curl or oc adm actions
-
-✅ What should you continue doing from bdgtr076x11t1?
-You’re on the right track. Continue using:
-
-bash
-Copy
-Edit
-oc create configmap registry-certs --from-file=sd-wv58-kflz.nam.nsroot.net=/root/domain.crt -n openshift-config
-
-oc patch image.config.openshift.io/cluster --type=merge -p '{"spec":{"additionalTrustedCA":{"name":"registry-certs"}}}'
-Then wait for MCP to complete the rollout.
-
-Let me know if you want help confirming rollout status or rechecking cert presence on a pod.
+oc delete pod vault-0 -n nacho-cds
+Image pull should succeed without TLS error.
