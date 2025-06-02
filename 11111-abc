@@ -168,3 +168,10 @@ Edit
 oc create ns nacho2
 oc patch serviceaccount default -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}' -n nacho2
 
+
+
+
+--------------
+oc patch sa default -p '{"imagePullSecrets":[{"name":"my-registry-secret"}]}' -n nacho
+
+
