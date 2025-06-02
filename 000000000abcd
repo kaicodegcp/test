@@ -1,0 +1,37 @@
+Safe to Delete
+In your debug shell (or directly on host):
+
+bash
+Copy
+Edit
+chroot /host ls -l --time-style=long-iso /etc/docker/certs.d/
+chroot /host ls -l --time-style=long-iso /etc/pki/ca-trust/source/anchors/
+Look for files with 2025-05-30 timestamps — and remove them:
+
+bash
+Copy
+Edit
+chroot /host rm -f /etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000/ca.crt
+chroot /host rm -f /etc/pki/ca-trust/source/anchors/domain.crt
+✅ Then Recreate Correct Cert Path
+If you’ve validated your current working domain.crt, then:
+
+bash
+Copy
+Edit
+mkdir -p /host/etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000
+cp /host/etc/pki/ca-trust/source/anchors/domain.crt /host/etc/docker/certs.d/sd-wv58-kflz.nam.nsroot.net:5000/ca.crt
+🔄 Refresh Trust
+bash
+Copy
+Edit
+chroot /host update-ca-trust extract
+chroot /host systemctl restart crio
+🧼 Optional: Remove wrong configmaps or secrets created earlier
+If the May 30 cert was stored in ConfigMap or Secret:
+
+bash
+Copy
+Edit
+oc delete configmap docker-registry-cert -n openshift-config
+oc delete secret my-registry-secret -n nacho
