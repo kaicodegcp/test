@@ -83,6 +83,40 @@ oc delete pod vault-test -n nacho
 ✅ Next Step
 Once that’s done and pod is recreated, run:
 
+
+
+
+============================================
+
+To patch the default service account in your namespace (e.g., nacho) to use your my-registry-secret for image pulls, run this command:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default \
+  -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}' \
+  -n nacho
+🔁 If you've already patched it once but want to ensure it's the only secret used (clean slate), run this version:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default \
+  --type='merge' \
+  -p '{"imagePullSecrets": [{"name": "my-registry-secret"}]}' \
+  -n nacho
+✅ To Verify Afterward:
+bash
+Copy
+Edit
+oc get serviceaccount default -n nacho -o yaml | grep imagePullSecrets -A2
+You should see:
+
+yaml
+Copy
+Edit
+imagePullSecrets:
+- name: my-registry-secret
 bash
 Copy
 Edit
