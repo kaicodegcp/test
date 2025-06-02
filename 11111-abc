@@ -175,3 +175,23 @@ oc patch serviceaccount default -p '{"imagePullSecrets": [{"name": "my-registry-
 oc patch sa default -p '{"imagePullSecrets":[{"name":"my-registry-secret"}]}' -n nacho
 
 
+
+==================
+
+ix: Use anyuid or privileged SCC
+Cloudera CDS components (like Vault) need anyuid SCC or elevated permissions.
+
+Run this to assign the correct SCC to the default service account in your namespace (nacho):
+
+bash
+Copy
+Edit
+oc adm policy add-scc-to-user anyuid -z default -n nacho
+If the vault-sa account exists, you can also run:
+
+bash
+Copy
+Edit
+oc adm policy add-scc-to-user anyuid -z vault-sa -n nacho
+
+
