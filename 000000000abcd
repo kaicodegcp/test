@@ -266,3 +266,46 @@ oc patch storageclass sc-ontap-nas \
 ===========
 oc patch storageclass ocs-storagecluster-ceph-rbd -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "false"}}}'
 
+
+
+============
+
+
+Final Fix Using oc/oc adm Only
+✅ 1. Cordon the Problem Node
+The pod is assigned to:
+
+Copy
+Edit
+dfgtr042x28h5.nam.nsroot.net
+To avoid scheduling on this problematic node:
+
+bash
+Copy
+Edit
+oc adm cordon dfgtr042x28h5.nam.nsroot.net
+✅ 2. Delete the Failing Pod
+This will force Kubernetes to reschedule the pod on a different node:
+
+bash
+Copy
+Edit
+oc delete pod vault-0 -n abc-vault
+✅ 3. (Optional) Watch Pod Re-Creation
+bash
+Copy
+Edit
+oc get pod vault-0 -n abc-vault -w
+Make sure it starts pulling the image and changes from ContainerCreating → Running.
+
+✅ 4. Uncordon the Node Later
+If needed after everything stabilizes:
+
+bash
+Copy
+Edit
+oc adm uncordon dfgtr042x28h5.nam.nsroot.net
+🔍 Why This Works
+By cordoning the problematic node (dfgtr042x28h5), OpenShift will place vault-0 on another healthy node that can mount the NFS volume successfully — this was your successful strategy for the same exit status 32 issue yesterday.
+
+
