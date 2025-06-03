@@ -253,3 +253,10 @@ oc delete svc --all -n nacho-vault
 
 # 3. Retry from Cloudera Manager wizard
 
+
+
+
+=============================
+
+oc patch storageclass sc-ontap-nas \
+  -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
