@@ -197,4 +197,41 @@ Edit
 oc get pvc -n nacho
 Ensure PVCs like cdp-embedded-db-backend are Bound.
 
+==================================
 
+
+Fix: Increase the storage quota properly
+Use this oc edit command not just for compute resources, but explicitly for storage quota if it's a separate ResourceQuota object:
+
+bash
+Copy
+Edit
+oc edit resourcequota storage-quota -n nacho
+And make sure you increase:
+
+yaml
+Copy
+Edit
+spec:
+  hard:
+    requests.storage: 200Gi
+If storage-quota doesn’t exist, list to confirm:
+
+bash
+Copy
+Edit
+oc get resourcequota -n nacho
+Then patch or create it as needed:
+
+bash
+Copy
+Edit
+oc create resourcequota storage-quota -n nacho \
+  --hard=requests.storage=200Gi
+Or patch:
+
+bash
+Copy
+Edit
+oc patch resourcequota storage-quota -n nacho \
+  --type='merge' -p '{"spec":{"hard":{"requests.storage":"200Gi"}}}'
