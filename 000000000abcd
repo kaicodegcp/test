@@ -121,3 +121,80 @@ bash
 Copy
 Edit
 oc get pods -n nacho -w
+
+
+
+
+=============================
+Final Fix Summary for CDS Deployment Failures
+🔧 1. Fix ResourceQuota for requests.storage
+The NotTerminating scope does not support requests.storage. You need to either:
+
+Remove the scopes: block entirely, or
+
+Move storage resource quotas to a separate ResourceQuota object without the NotTerminating scope.
+
+bash
+Copy
+Edit
+oc patch resourcequota compute-resources -n nacho --type=merge -p '{
+  "spec": {
+    "scopes": null,
+    "hard": {
+      "requests.storage": "2000Gi"
+    }
+  }
+}'
+Or edit the quota manually:
+
+bash
+Copy
+Edit
+oc edit resourcequota compute-resources -n nacho
+And remove the scopes: section entirely if using storage limits.
+
+🛠️ 2. Confirm Volume Limit
+Ensure that PVCs are under quota. Your error says:
+
+yaml
+Copy
+Edit
+exceeded quota: storage-quota, requested: 200Gi, used: 0, limited: 50Gi
+To increase quota:
+
+bash
+Copy
+Edit
+oc patch resourcequota compute-resources -n nacho --type='merge' -p '{
+  "spec": {
+    "hard": {
+      "requests.storage": "2000Gi"
+    }
+  }
+}'
+🔑 3. Set my-registry-cert Pull Secret
+If not done already:
+
+bash
+Copy
+Edit
+oc patch serviceaccount default -n nacho -p '{"imagePullSecrets": [{"name": "my-registry-cert"}]}'
+📦 4. StorageClass Check
+Your default StorageClass is correct:
+
+cpp
+Copy
+Edit
+sc-ontap-nas (default)
+Ensure all CDS components are requesting volumes using this class. If needed, update any Helm overrides or CDS settings for this.
+
+🛑 5. Validate PVCs
+Check PVC usage and binding:
+
+bash
+Copy
+Edit
+oc get pvc -n nacho
+Ensure PVCs like cdp-embedded-db-backend are Bound.
+
+
