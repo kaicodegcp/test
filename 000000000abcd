@@ -235,3 +235,21 @@ Copy
 Edit
 oc patch resourcequota storage-quota -n nacho \
   --type='merge' -p '{"spec":{"hard":{"requests.storage":"200Gi"}}}'
+
+
+
+========================
+
+# 1. Delete the vault-related namespace if not needed
+oc delete ns nacho-vault
+
+# 2. Or, clean up only specific objects if namespace is reused:
+oc delete pod vault-0 -n nacho-vault
+oc delete pvc --all -n nacho-vault
+oc delete secrets --all -n nacho-vault
+oc delete configmap --all -n nacho-vault
+oc delete deployment --all -n nacho-vault
+oc delete svc --all -n nacho-vault
+
+# 3. Retry from Cloudera Manager wizard
+
