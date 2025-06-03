@@ -260,3 +260,9 @@ oc delete svc --all -n nacho-vault
 
 oc patch storageclass sc-ontap-nas \
   -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+
+
+===========
+oc patch storageclass ocs-storagecluster-ceph-rbd -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "false"}}}'
+
