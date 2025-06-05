@@ -11,5 +11,14 @@ curl --negotiate -u : -X POST \
 
 openssl s_client -connect bigdataplatform-tts-dev2-livy.nam.nsroot.net:28998 -CAfile /opt/cloudera/security/x509/root_ca_cert.pem
 
+curl --negotiate -u : -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"kind": "spark"}' \
+  https://bdgtr091xl5t2.nam.nsroot.net:28998/sessions \
+  --cacert /opt/cloudera/security/x509/root_ca_cert.pem \
+  --resolve bdgtr091xl5t2.nam.nsroot.net:28998:168.72.239.218 \
+  -L -v
+
+
 
 
