@@ -1,0 +1,15 @@
+openssl x509 -in /opt/cloudera/security/x509/root_ca_cert.pem -text -noout
+
+echo | openssl s_client -connect bigdataplatform-tts-dev2-livy.nam.nsroot.net:28998 -showcerts
+
+curl --negotiate -u : -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"kind": "spark"}' \
+  https://bigdataplatform-tts-dev2-livy.nam.nsroot.net:28998/sessions \
+  --cacert /opt/cloudera/security/x509/root_ca_cert.pem \
+  -L -v
+
+openssl s_client -connect bigdataplatform-tts-dev2-livy.nam.nsroot.net:28998 -CAfile /opt/cloudera/security/x509/root_ca_cert.pem
+
+
+
