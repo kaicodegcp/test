@@ -21,4 +21,60 @@ curl --negotiate -u : -X POST \
 
 
 
+Next Steps: Use the Newly Generated Certs in Livy
+🔍 Step 1: Verify the cert includes the correct SAN
+Run this on the node where the .pem is placed:
+
+bash
+Copy
+Edit
+openssl x509 -in <your-new-cert>.pem -noout -text | grep -A1 "Subject Alternative Name"
+You must see:
+
+ruby
+Copy
+Edit
+DNS:bigdataplatform-tts-dev2-livy.nam.nsroot.net
+🔧 Step 2: Copy the required certs to your Livy server (if not already there)
+Example:
+
+bash
+Copy
+Edit
+# Copy cert, key, and CA cert to the correct path
+cp /path/to/new-cert.pem      /opt/cloudera/security/x509/livy.crt
+cp /path/to/new-key.key       /opt/cloudera/security/x509/livy.key
+cp /path/to/ca-cert.pem       /opt/cloudera/security/x509/root_ca_cert.pem
+
+# Fix permissions
+chmod 600 /opt/cloudera/security/x509/livy.key
+chmod 644 /opt/cloudera/security/x509/livy.crt /opt/cloudera/security/x509/root_ca_cert.pem
+⚙️ Step 3: Configure Livy in Cloudera Manager
+Go to:
+
+CM Admin Console → Spark 3 → Configuration
+Search for: TLS or SSL and set:
+
+Property	Set Value
+Livy TLS/SSL Server Certificate File	/opt/cloudera/security/x509/livy.crt
+Livy TLS/SSL Server Private Key File	/opt/cloudera/security/x509/livy.key
+Livy TLS/SSL CA Certificate File	/opt/cloudera/security/x509/root_ca_cert.pem
+
+Click Save Changes.
+
+🔁 Step 4: Restart Livy Service
+Go to Spark 3 → Instances → Livy Server → Actions → Restart
+
+✅ Step 5: Test curl with CA cert and Load Balancer FQDN
+bash
+Copy
+Edit
+curl --negotiate -u : -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"kind": "spark"}' \
+  https://bigdataplatform-tts-dev2-livy.nam.nsroot.net:28998/sessions \
+  --cacert /opt/cloudera/security/x509/root_ca_cert.pem \
+  -L -v
+You should no longer get the SSL: no alternative certificate subject name error.
+
 
