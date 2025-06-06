@@ -19,3 +19,34 @@ Next steps:
 Begin 30-day plan to eliminate Python 2 from all SDLC servers across application edge and operations-managed clusters.
 
 Monitor for compatibility issues and collect feedback from application teams during the transition.
+
+
+=============
+Enhancing Python Environment Consistency and Reliability
+The EAP Strategic Solutions team completed the cleanup of Python 2.7 references across Ansible playbooks and implemented a softlink from python to python3.8. This change standardizes the Python environment, preventing OS-level VTM breakages and ensuring consistency across deployments.
+
+Historically, Python 2.7 was required on RHEL7 servers to support key components like Hue and Impala Shell. As part of this initiative, the team validated and successfully tested Hue and Impala compatibility with Python 3.8 on RHEL8-based environments, confirming readiness to transition away from Python 2.7.
+
+What was achieved:
+
+Successfully removed legacy Python 2.7 dependencies from all server installation playbooks.
+
+Replaced python binary links with python3.8, ensuring compatibility and standardization.
+
+Verified Impala shell execution and Hue application testing on edge nodes using Python 3.8.
+
+Benefit to the team:
+
+Prevents OS VTM failures due to unsupported Python 2.7 references.
+
+Ensures all EAP applications and edge nodes utilize a consistent and secure Python 3.8 runtime.
+
+Reduces future maintenance overhead and simplifies environment setup.
+
+Enables migration from RHEL7 to RHEL8 without dependency blockers for critical applications.
+
+Next steps:
+
+Begin 30-day plan to eliminate Python 2 from all SDLC servers across application edge and operations-managed clusters.
+
+Monitor for compatibility issues and collect feedback from application teams during the transition.
