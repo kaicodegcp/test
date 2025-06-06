@@ -1,0 +1,21 @@
+Enhancing Python Environment Consistency and Reliability
+The EAP Strategic Solutions team completed the cleanup of Python 2.7 references across Ansible playbooks and implemented a softlink from python to python3.8. This change standardizes the Python environment, preventing OS-level VTM breakages and ensuring consistency across deployments.
+
+What was achieved:
+Successfully removed legacy Python 2.7 dependencies from all server installation playbooks.
+Replaced python binary links with python3.8, ensuring compatibility and standardization.
+Verified Impala shell execution and application testing on edge nodes with the new configuration.
+
+Benefit to the team:
+
+Prevents OS VTM failures due to unsupported Python 2.7 references.
+
+Ensures all EAP applications and edge nodes utilize a consistent and secure Python 3.8 runtime.
+
+Reduces future maintenance overhead and simplifies environment setup.
+
+Next steps:
+
+Begin 30-day plan to eliminate Python 2 from all SDLC servers across application edge and operations-managed clusters.
+
+Monitor for compatibility issues and collect feedback from application teams during the transition.
